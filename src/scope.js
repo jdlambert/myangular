@@ -6,6 +6,7 @@ function initWatchVal() { }
 
 function Scope() {
     this.$$watchers = [];
+    this.$$lastDirtyWatch = null;
 }
 
 Scope.prototype.$watch = function(watchFn, listenerFn) {
@@ -24,6 +25,7 @@ Scope.prototype.$$digestOnce = function() {
         newValue = watcher.watchFn(self);
         oldValue = watcher.last;
         if (newValue !== oldValue) {
+            self.$$lastDirtyWatch = watcher;
             watcher.last = newValue;
             watcher.listenerFn(
                 newValue, 
@@ -31,15 +33,24 @@ Scope.prototype.$$digestOnce = function() {
                 self
             );
             dirty = true;
+        } else if (self.$$lastDirtyWatch === watcher) {
+            // explicitly returning false in a _.forEach loop causes
+            // LoDash to short-circuit the loop and exit immediately
+            return false; 
         }
     });
     return dirty;
 };
 
 Scope.prototype.$digest = function() {
+    var timeToLive = 10;
     var dirty;
+    this.$$lastDirtyWatch = null;
     do {
         dirty = this.$$digestOnce();
+        if (dirty && !(timeToLive--)) {
+            throw '10 digest iterations reached';
+        }
     } while (dirty);
 };
 
