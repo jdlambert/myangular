@@ -197,8 +197,8 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
         changeReactionScheduled = false;
     }
 
-    _.forEach(watchFns, function(watchFn, i) {
-        self.$watch(watchFn, function(newValue, oldValue) {
+    var destroyFunctions = _.map(watchFns, function(watchFn, i) {
+        return self.$watch(watchFn, function(newValue, oldValue) {
             newValues[i] = newValue;
             oldValues[i] = oldValue;
             if (!changeReactionScheduled) {
@@ -207,6 +207,13 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
             }
         });
     });
+
+    return function() {
+        _.forEach(destroyFunctions, function(destroyFunction) {
+            destroyFunction();
+        });
+    };
+
 };
 
 module.exports = Scope;
