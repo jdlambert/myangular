@@ -33,21 +33,23 @@ Scope.prototype.$$digestOnce = function() {
     var newValue, oldValue, dirty;
     _.forEachRight(this.$$watchers, function(watcher) {
         try {
-            newValue = watcher.watchFn(self);
-            oldValue = watcher.last;
-            if (!self.$$areEqual(newValue, oldValue, watcher.valueEq)) {
-                self.$$lastDirtyWatch = watcher;
-                watcher.last = (watcher.valueEq ? _.cloneDeep(newValue) : newValue);
-                watcher.listenerFn(
-                    newValue, 
-                    (oldValue === initWatchVal ? newValue : oldValue), 
-                    self
-                );
-                dirty = true;
-            } else if (self.$$lastDirtyWatch === watcher) {
-                // explicitly returning false in a _.forEach loop causes
-                // LoDash to short-circuit the loop and exit immediately
-                return false; 
+            if (watcher) { // watcher may have already been destroyed
+                newValue = watcher.watchFn(self);
+                oldValue = watcher.last;
+                if (!self.$$areEqual(newValue, oldValue, watcher.valueEq)) {
+                    self.$$lastDirtyWatch = watcher;
+                    watcher.last = (watcher.valueEq ? _.cloneDeep(newValue) : newValue);
+                    watcher.listenerFn(
+                        newValue, 
+                        (oldValue === initWatchVal ? newValue : oldValue), 
+                        self
+                    );
+                    dirty = true;
+                } else if (self.$$lastDirtyWatch === watcher) {
+                    // explicitly returning false in a _.forEach loop causes
+                    // LoDash to short-circuit the loop and exit immediately
+                    return false; 
+                }
             }
         } catch (e) {
             console.error(e);
