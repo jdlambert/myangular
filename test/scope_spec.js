@@ -460,7 +460,50 @@ describe('Scope', function() {
             scope.$digest();
             expect(scope.aSyncEvaluated).toBe(true);
             expect(scope.aSyncEvaluatedImmediately).toBe(false);
-        })
-    })
+        });
+
+        it('executes $evalAsynced functions added by watch functions', function() {
+            scope.aValue = [1, 2, 3];
+            scope.aSyncEvaluated = false;
+
+            scope.$watch(
+                function(scope) {
+                    if (!scope.aSyncEvaluated) {
+                        scope.$evalAsync(function(scope) {
+                            scope.aSyncEvaluated = true;
+                        });
+                    }
+                    return scope.aValue;
+                },
+                function(newValue, oldValue, scope) { }
+            );
+
+            scope.$digest();
+
+            expect(scope.aSyncEvaluated).toBe(true);
+        });
+
+        it('executes $evalAsynced functions even when not dirty', function() {
+            scope.aValue = [1, 2, 3];
+            scope.asyncEvaluatedTimes = 0;
+
+            scope.$watch(
+                function(scope) {
+                    if (scope.asyncEvaluatedTimes < 2) {
+                        scope.$evalAsync(function(scope) {
+                            scope.asyncEvaluatedTimes++;
+                        });
+                    }
+                    return scope.aValue;
+                },
+                function(newValue, oldValue, scope) { }
+            );
+
+            scope.$digest();
+
+            expect(scope.asyncEvaluatedTimes).toBe(2);
+       });
+
+    });
 
 });

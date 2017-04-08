@@ -72,7 +72,7 @@ Scope.prototype.$digest = function() {
         if (dirty && !(timeToLive--)) {
             throw 'Digest cycle exceeded time-to-live';
         }
-    } while (dirty);
+    } while (dirty || this.$$asyncQueue.length);
 };
 
 Scope.prototype.$$areEqual = function(newValue, oldValue, valueEq) {
@@ -80,8 +80,8 @@ Scope.prototype.$$areEqual = function(newValue, oldValue, valueEq) {
         return _.isEqual(newValue, oldValue); // compare by value
     } else {
         return newValue === oldValue || // compare by reference
-          ( typeof newValue === 'number' && typeof oldValue === 'number' 
-            && isNaN(newValue) && isNaN(oldValue));
+          ( typeof newValue === 'number' && typeof oldValue === 'number' &&
+            isNaN(newValue) && isNaN(oldValue));
     }
 };
 
@@ -99,6 +99,6 @@ Scope.prototype.$apply = function(expr) {
 
 Scope.prototype.$evalAsync = function(expr) {
     this.$$asyncQueue.push({scope: this, expression: expr});
-}
+};
 
 module.exports = Scope;
