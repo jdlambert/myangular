@@ -69,7 +69,7 @@ Scope.prototype.$digest = function() {
             asyncTask.scope.$eval(asyncTask.expression);
         }
         dirty = this.$$digestOnce();
-        if (dirty && !(timeToLive--)) {
+        if ((dirty || this.$$asyncQueue.length) && !(timeToLive--)) {
             throw 'Digest cycle exceeded time-to-live';
         }
     } while (dirty || this.$$asyncQueue.length);
