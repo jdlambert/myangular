@@ -10,6 +10,7 @@ function Scope() {
 }
 
 Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
+    var self = this;
     var watcher = {
         watchFn: watchFn,
         listenerFn: listenerFn || function() { },
@@ -18,6 +19,12 @@ Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
     };
     this.$$watchers.push(watcher);
     this.$$lastDirtyWatch = null;
+    return function() {
+        var index = self.$$watchers.indexOf(watcher);
+        if (index >= 0) {
+            self.$$watchers.splice(index, 1);
+        }
+    };
 };
 
 Scope.prototype.$$digestOnce = function() {
