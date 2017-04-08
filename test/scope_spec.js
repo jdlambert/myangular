@@ -434,4 +434,33 @@ describe('Scope', function() {
 
     });
 
+    describe('$evalAsync', function() {
+
+        var scope;
+
+        beforeEach(function() {
+            scope = new Scope();
+        });
+
+        it('executes given function later in the same cycle', function() {
+            scope.aValue = [1, 2, 3];
+            scope.aSyncEvaluated = false;
+            scope.aSyncEvaluatedImmediately = false;
+
+            scope.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.$evalAsync(function(scope) {
+                        scope.aSyncEvaluated = true;
+                    });
+                    scope.aSyncEvaluatedImmediately = scope.aSyncEvaluated;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.aSyncEvaluated).toBe(true);
+            expect(scope.aSyncEvaluatedImmediately).toBe(false);
+        })
+    })
+
 });
