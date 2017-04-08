@@ -51,7 +51,7 @@ Scope.prototype.$digest = function() {
     do {
         dirty = this.$$digestOnce();
         if (dirty && !(timeToLive--)) {
-            throw '10 digest iterations reached';
+            throw 'Digest cycle exceeded time-to-live';
         }
     } while (dirty);
 };
@@ -60,7 +60,9 @@ Scope.prototype.$$areEqual = function(newValue, oldValue, valueEq) {
     if (valueEq) {
         return _.isEqual(newValue, oldValue); // compare by value
     } else {
-        return newValue === oldValue; // compare by reference
+        return newValue === oldValue || // compare by reference
+          ( typeof newValue === 'number' && typeof oldValue === 'number' 
+            && isNaN(newValue) && isNaN(oldValue));
     }
 };
 
