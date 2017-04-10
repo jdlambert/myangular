@@ -1062,6 +1062,22 @@ describe('Scope', function() {
             expect(child2.$$children[0]).toBe(child2_1);
         });
 
+        it('digests its children', function() {
+            var parent = new Scope();
+            var child = parent.$new();
+
+            parent.aValue = 'abc';
+            child.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.aValueWas = newValue;
+                }
+            );
+
+            parent.$digest();
+            expect(child.aValueWas).toBe('abc');
+        });
+
     });
 
 });
