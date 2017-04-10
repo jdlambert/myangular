@@ -16,10 +16,15 @@ function Scope() {
     this.$$children = [];
 }
 
-Scope.prototype.$new = function() {
-    var ChildScope = function() { };
-    ChildScope.prototype = this;
-    var child = new ChildScope();
+Scope.prototype.$new = function(isolated) {
+    var child;
+    if (isolated) {
+        child = new Scope();
+    } else {
+        var ChildScope = function() { };
+        ChildScope.prototype = this;
+        var child = new ChildScope();
+    }
     child.$$watchers = [];
     child.$$children = [];
     this.$$children.push(child);
@@ -35,12 +40,12 @@ Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
         last: initWatchVal
     };
     this.$$watchers.unshift(watcher);
-    this.$$lastDirtyWatch = null;
+    this.$root.$$lastDirtyWatch = null;
     return function() {
         var index = self.$$watchers.indexOf(watcher);
         if (index >= 0) {
             self.$$watchers.splice(index, 1);
-            self.$$lastDirtyWatch = null;
+            self.$root.$$lastDirtyWatch = null;
         }
     };
 };
@@ -57,7 +62,7 @@ Scope.prototype.$$digestOnce = function() {
                     newValue = watcher.watchFn(scope);
                     oldValue = watcher.last;
                     if (!scope.$$areEqual(newValue, oldValue, watcher.valueEq)) {
-                        self.$$lastDirtyWatch = watcher;
+                        self.$root.$$lastDirtyWatch = watcher;
                         watcher.last = (watcher.valueEq ? _.cloneDeep(newValue) : newValue);
                         watcher.listenerFn(
                             newValue, 
@@ -65,7 +70,7 @@ Scope.prototype.$$digestOnce = function() {
                             scope
                         );
                         dirty = true;
-                    } else if (self.$$lastDirtyWatch === watcher) {
+                    } else if (self.$root.$$lastDirtyWatch === watcher) {
                         continueLoop = false;
                         // explicitly returning false in a _.forEach loop causes
                         // LoDash to short-circuit the loop and exit immediately
@@ -84,7 +89,7 @@ Scope.prototype.$$digestOnce = function() {
 Scope.prototype.$digest = function() {
     var timeToLive = 10;
     var dirty;
-    this.$$lastDirtyWatch = null;
+    this.$root.$$lastDirtyWatch = null;
     this.$beginPhase('$digest');
 
     if(this.$$applyAsyncId) {

@@ -924,7 +924,7 @@ describe('Scope', function() {
         });
     });
 
-    describe('inheritance', function() {
+    describe('a child scope', function() {
 
         it('inherits the parent\'s properties', function() {
             var parent = new Scope();
@@ -1118,6 +1118,31 @@ describe('Scope', function() {
                 done();
             }, 50);
         });
+
+        it('does not have access to parent attributes when isolated', function() {
+            var parent = new Scope();
+            var child = parent.$new(true);
+
+            parent.aValue = 'abc';
+
+            expect(child.aValue).toBeUndefined();
+        });
+
+        it('cannot watch parent attributes when isolated', function() {
+            var parent = new Scope();
+            var child = parent.$new(true);
+
+            parent.aValue = 'abc';
+            child.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.aValueWas = newValue;
+                }
+            );
+
+            child.$digest();
+            expect(child.aValueWas).toBeUndefined();
+        })
 
     });
 
