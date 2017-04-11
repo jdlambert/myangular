@@ -28,7 +28,7 @@ Scope.prototype.$new = function(isolated, parent) {
     } else {
         var ChildScope = function() { };
         ChildScope.prototype = this;
-        var child = new ChildScope();
+        child = new ChildScope();
     }
     parent.$$children.push(child);
     child.$$watchers = [];
@@ -65,6 +65,30 @@ Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
             self.$root.$$lastDirtyWatch = null;
         }
     };
+};
+
+Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
+    var self = this;
+    var newValue;
+    var oldValue;
+    var changeCount = 0;
+
+    var internalWatchFn = function(scope) {
+        newValue = watchFn(scope);
+
+        if (newValue !== oldValue) {
+            changeCount++;
+        }
+
+        oldValue = newValue;
+        return changeCount;
+    }
+
+    var internalListenerFn = function() {
+        listenerFn(newValue, oldValue, self);
+    }
+
+    return this.$watch(internalWatchFn, internalListenerFn);
 };
 
 Scope.prototype.$$digestOnce = function() {
