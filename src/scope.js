@@ -76,7 +76,7 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
     var internalWatchFn = function(scope) {
         newValue = watchFn(scope);
 
-        if (newValue !== oldValue) {
+        if (!self.$$areEqual(newValue, oldValue, false)) {
             changeCount++;
         }
 
@@ -264,7 +264,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
             listenerFn(newValues, oldValues, self);
         }
         changeReactionScheduled = false;
-    }
+    };
 
     var destroyFunctions = _.map(watchFns, function(watchFn, i) {
         return self.$watch(watchFn, function(newValue, oldValue) {
