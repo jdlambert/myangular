@@ -46,7 +46,7 @@ Scope.prototype.$destroy = function() {
         }
     }
     this.$$watchers = null;
-}
+};
 
 Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
     var self = this;
@@ -94,7 +94,10 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
                     }
                 });
             } else {
-
+                if (!_.isObject(oldValue) || isArrayLike(oldValue)) {
+                    changeCount++;
+                    oldValue = {};
+                }
             }
         } else {
             if (!self.$$areEqual(newValue, oldValue, false)) {
@@ -104,11 +107,11 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
         }
 
         return changeCount;
-    }
+    };
 
     var internalListenerFn = function() {
         listenerFn(newValue, oldValue, self);
-    }
+    };
 
     return this.$watch(internalWatchFn, internalListenerFn);
 };
@@ -153,7 +156,7 @@ Scope.prototype.$$digestOnce = function() {
             }
         });
         return continueLoop;
-    })
+    });
     return dirty;
 };
 
@@ -294,7 +297,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
             listenerFn(newValues, oldValues, self);
         }
         changeReactionScheduled = false;
-    };
+    }
 
     var destroyFunctions = _.map(watchFns, function(watchFn, i) {
         return self.$watch(watchFn, function(newValue, oldValue) {
@@ -323,6 +326,6 @@ Scope.prototype.$$everyScope = function(fn) {
     } else {
         return false;
     }
-}
+};
 
 module.exports = Scope;

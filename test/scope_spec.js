@@ -1257,7 +1257,7 @@ describe('Scope', function() {
 
             heirarchyParent.$digest();
             expect(child.counter).toBe(2);
-        })
+        });
 
     });
 
@@ -1288,7 +1288,7 @@ describe('Scope', function() {
             child.aValue.push(5);
             parent.$digest();
             expect(child.counter).toBe(2);
-        })
+        });
 
     });
 
@@ -1324,7 +1324,7 @@ describe('Scope', function() {
 
             scope.$digest();
             expect(scope.counter).toBe(2);
-        })
+        });
 
         it('works like a normal watch for NaNs', function() {
             scope.aValue = 0/0;
@@ -1348,7 +1348,7 @@ describe('Scope', function() {
             scope.counter = 0;
 
             scope.$watchCollection(
-                function(scope) { return scope.arr },
+                function(scope) { return scope.arr; },
                 function(newValue, oldValue, scope) {
                     scope.counter++;
                 }
@@ -1516,7 +1516,26 @@ describe('Scope', function() {
             expect(scope.counter).toBe(2);
         });
 
+        it('notices when the value becomes an object', function() {
+            scope.counter = 0;
 
+            scope.$watchCollection(
+                function(scope) { return scope.obj; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.obj = {a: 1};
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
 
     });
 
