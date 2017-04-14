@@ -376,6 +376,20 @@ Scope.prototype.$on = function(eventName, listener) {
         this.$$listeners[eventName] = listeners = []; // Double assignment!
     }
     listeners.push(listener);
-}
+};
+
+Scope.prototype.$emit = function(eventName) {
+    var listeners = this.$$listeners[eventName] || [];
+    _.forEach(listeners, function(listener) {
+        listener();
+    });
+};
+
+Scope.prototype.$broadcast = function(eventName) {
+    var listeners = this.$$listeners[eventName] || [];
+    _.forEach(listeners, function(listener) {
+        listener();
+    });
+};
 
 module.exports = Scope;
