@@ -11,9 +11,10 @@ function Scope() {
     this.$$applyAsyncQueue = [];
     this.$$applyAsyncId = null;
     this.$$postDigestQueue = [];
-    this.$$phase = null;
     this.$root = this;
     this.$$children = [];
+    this.$$listeners = {};
+    this.$$phase = null;
 }
 
 Scope.prototype.$new = function(isolated, parent) {
@@ -31,6 +32,7 @@ Scope.prototype.$new = function(isolated, parent) {
         child = new ChildScope();
     }
     parent.$$children.push(child);
+    child.$$listeners = {};
     child.$$watchers = [];
     child.$$children = [];
     child.$parent = parent;
@@ -367,5 +369,13 @@ Scope.prototype.$$everyScope = function(fn) {
         return false;
     }
 };
+
+Scope.prototype.$on = function(eventName, listener) {
+    var listeners = this.$$listeners[eventName];
+    if (!listeners) {
+        this.$$listeners[eventName] = listeners = []; // Double assignment!
+    }
+    listeners.push(listener);
+}
 
 module.exports = Scope;
