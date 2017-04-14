@@ -40,6 +40,7 @@ Scope.prototype.$new = function(isolated, parent) {
 };
 
 Scope.prototype.$destroy = function() {
+    this.$broadcast('$destroy');
     if (this.$parent){
         var siblings = this.$parent.$$children;
         var indexOfThis = siblings.indexOf(this);
@@ -48,6 +49,7 @@ Scope.prototype.$destroy = function() {
         }
     }
     this.$$watchers = null;
+    this.$$listeners = {};
 };
 
 Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
@@ -391,7 +393,7 @@ Scope.prototype.$emit = function(eventName) {
         targetScope: this,
         stopPropagation: function() {
             propagationStopped = true;
-        }
+        },
         preventDefault: function() {
             event.defaultPrevented = true;
         }
@@ -432,7 +434,11 @@ Scope.prototype.$$fireEventOnScope = function(eventName, listenerArgs) {
         if (listeners[i] === null) {
             listeners.splice(i, 1);
         } else {
-            listeners[i].apply(null, listenerArgs);
+            try {
+                listeners[i].apply(null, listenerArgs);
+            } catch (e) {
+                console.error(e);
+            }
             i++;
         }
     }
