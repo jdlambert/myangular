@@ -140,7 +140,7 @@ Lexer.prototype.readIdent = function() {
 
     var token = {text: text};
     this.tokens.push(token);
-}
+};
 
 Lexer.prototype.peek = function() {
     return this.index < this.text.length - 1 ?
@@ -150,17 +150,17 @@ Lexer.prototype.peek = function() {
 
 Lexer.prototype.isExpOperator = function(ch) {
     return ch === '-' || ch === '+' || this.isNumber(ch);
-}
+};
 
 Lexer.prototype.isIdent = function(ch) {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
         ch === '_' || ch === '$';
-}
+};
 
 Lexer.prototype.isWhiteSpace = function(ch) {
     return ch === ' ' || ch === '\r' || ch === '\t' ||
            ch === '\n' || ch === '\v' || ch === '\u00A0';
-}
+};
 
 
 
@@ -181,7 +181,7 @@ AST.prototype.constants = {
     'null': {type: AST.Literal, value: null},
     'true': {type: AST.Literal, value: true},
     'false': {type: AST.Literal, value: false},
-}
+};
 
 AST.prototype.ast = function(text) {
     this.tokens = this.lexer.lex(text);
@@ -270,12 +270,12 @@ ASTCompiler.prototype.escape = function(value) {
     } else {
         return value;
     }
-}
+};
 
 ASTCompiler.prototype.stringEscapeRegex = /[^ a-zA-Z0-9]/g;
 ASTCompiler.prototype.stringEscapeFn = function(c) {
     return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
-}
+};
 
 
 
