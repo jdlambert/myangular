@@ -44,4 +44,18 @@ describe('parse', function() {
         var fn = parse('.42E2');
         expect(fn()).toBe(42);
     });
+
+    it('can parse strings in double quotes', function() {
+        var fn = parse('"abc"');
+        expect(fn()).toEqual('abc');
+    });
+
+    it('can parse strings in single quotes', function() {
+        var fn = parse("'abc'");
+        expect(fn()).toEqual('abc');
+    });
+
+    it('will not parse a string with mismatching quotes', function() {
+        expect(function() { parse('"abc\''); }).toThrow();
+    });
 });
