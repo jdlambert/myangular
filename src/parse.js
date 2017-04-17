@@ -181,6 +181,7 @@ AST.Program = 'Program';
 AST.Literal = 'Literal';
 AST.ArrayExpression = 'ArrayExpression';
 AST.ObjectExpression = 'ObjectExpression';
+AST.Property = 'Property';
 
 AST.prototype.constants = {
     'null': {type: AST.Literal, value: null},
@@ -248,8 +249,18 @@ AST.prototype.arrayDeclaration = function() {
 };
 
 AST.prototype.object = function() {
+    var properties = [];
+    if (!this.peek('}')) {
+        do {
+            var property = {type: AST.Property};
+            property.key = this.constant();
+            this.consume(':');
+            property.value = this.primary();
+            properties.push(property);
+        } while (this.expect(','));
+    }
     this.consume('}');
-    return {type: AST.ObjectExpression};
+    return {type: AST.ObjectExpression, properties: properties};
 }
 
 AST.prototype.constant = function() {
@@ -292,7 +303,12 @@ ASTCompiler.prototype.recurse = function(ast) {
             }, this));
             return '[' + elements.join(',') + ']';
         case AST.ObjectExpression:
-            return '{}';
+            var properties = _.map(ast.properties, _.bind(function(property) {
+                var key = this.escape(property.key.value);
+                var value = this.recurse(property.value);
+                return key + ':' + value;
+            }, this));
+            return '{' + properties.join(',') + '}';
     }
 };
 
