@@ -186,11 +186,13 @@ AST.ArrayExpression = 'ArrayExpression';
 AST.ObjectExpression = 'ObjectExpression';
 AST.Property = 'Property';
 AST.Identifier = 'Identifier';
+AST.ThisExpression = 'ThisExpression';
 
 AST.prototype.constants = {
     'null': {type: AST.Literal, value: null},
     'true': {type: AST.Literal, value: true},
     'false': {type: AST.Literal, value: false},
+    'this': {type: AST.ThisExpression}
 };
 
 AST.prototype.ast = function(text) {
@@ -335,6 +337,8 @@ ASTCompiler.prototype.recurse = function(ast) {
             return intoId;
         // A non-computed lookup is of the a.b type, as opposed to the computed a[b] type
         // That is, b is simply an identifier, it cannot be an expression
+        case AST.ThisExpression:
+            return 's';
     }
 };
 
