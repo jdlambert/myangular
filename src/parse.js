@@ -312,7 +312,7 @@ ASTCompiler.prototype.compile = function(text) {
     this.recurse(ast);
     /* jshint -W054 */
     console.log(this.state.body.join(''));
-    return new Function('s',
+    return new Function('s', 'l',
         (this.state.vars.length ?
             'var ' + this.state.vars.join(',') + ';' :
             ''
@@ -344,7 +344,10 @@ ASTCompiler.prototype.recurse = function(ast) {
             return '{' + properties.join(',') + '}';
         case AST.Identifier:
             intoId = this.nextId();
-            this.if_('s', this.assign(intoId, this.nonComputedMember('s', ast.name)));;
+            this.if_(this.getHasOwnProperty('l', ast.name),
+                     this.assign(intoId, this.nonComputedMember('l', ast.name)));
+            this.if_(this.not(this.getHasOwnProperty('l', ast.name)) + '&& s',
+                     this.assign(intoId, this.nonComputedMember('s', ast.name)));
             return intoId;
         // A non-computed lookup is of the a.b type, as opposed to the computed a[b] type
         // That is, b is simply an identifier, it cannot be an expression
@@ -369,6 +372,14 @@ ASTCompiler.prototype.if_ = function(test, consequent) {
 
 ASTCompiler.prototype.assign = function(id, value) {
     return id + '=' + value + ';';
+};
+
+ASTCompiler.prototype.not = function(e) {
+    return '!(' + e + ')';
+};
+
+ASTCompiler.prototype.getHasOwnProperty = function(object, property) {
+    return object + '&&(' + this.escape(property) + ' in ' + object + ')';
 };
 
 ASTCompiler.prototype.nextId = function() {
