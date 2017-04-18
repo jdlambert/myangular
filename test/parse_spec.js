@@ -134,4 +134,11 @@ describe('parse', function() {
         expect(fn({})).toBeUndefined();
     });
 
+    // FIRST MAJOR DIFFERENCE FROM JAVASCRIPT
+    // AngularJS is very forgiving when it comes to missing attributes
+    it('returns undefined when looking up an attribute from undefined', function() {
+        var fn = parse('aKey');
+        expect(fn()).toBeUndefined();
+    });
+
 });
