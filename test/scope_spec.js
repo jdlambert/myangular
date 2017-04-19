@@ -1840,7 +1840,7 @@ describe('Scope', function() {
             it('sets defaultPrevented when preventDefault is called on ' + method, function() {
                 var listener = function(event) {
                     event.preventDefault();
-                }
+                };
                 scope.$on('someEvent', listener);
 
                 var event = scope[method]('someEvent');
@@ -1859,7 +1859,7 @@ describe('Scope', function() {
                 scope[method]('someEvent');
 
                 expect(listener2).toHaveBeenCalled();
-            })
+            });
 
         });
 
@@ -2059,7 +2059,7 @@ describe('Scope', function() {
 
             scope.$emit('myEvent');
             expect(listener).not.toHaveBeenCalled();
-        })
+        });
 
     });
 
