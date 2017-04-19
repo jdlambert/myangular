@@ -241,7 +241,8 @@ AST.prototype.primary = function() {
         } else if (next.text === '(') {
             primary = {
                 type: AST.CallExpression,
-                callee: primary
+                callee: primary,
+                arguments: this.parseArguments()
             };
             this.consume(')');
         }
@@ -313,6 +314,16 @@ AST.prototype.constant = function() {
 
 AST.prototype.identifier = function() {
     return {type: AST.Identifier, name: this.consume().text};
+};
+
+AST.prototype.parseArguments = function() {
+    var args = [];
+    if (!this.peek(')')) {
+        do {
+            args.push(this.primary());
+        } while (this.expect(','));
+    }
+    return args;
 };
 
 
@@ -391,7 +402,10 @@ ASTCompiler.prototype.recurse = function(ast) {
             return intoId;
         case AST.CallExpression:
             var callee = this.recurse(ast.callee);
-            return callee + '&&' + callee + '()';
+            var args = _.map(ast.arguments, _.bind(function(arg) {
+                return this.recurse(arg);
+            }, this));
+            return callee + '&&' + callee + '(' + args.join(',') + ')';
     }
 };
 
