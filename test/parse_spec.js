@@ -333,4 +333,11 @@ describe('parse', function() {
         fn(scope);
         expect(scope.anAttribute).toBe(42);
     });
+
+    it('creates the objects in the assignment path that do not exist', function() {
+        var fn = parse('some["nested"].property.path = 42');
+        var scope = {};
+        fn(scope);
+        expect(scope.some.nested.property.path).toBe(42);
+    });
 });
