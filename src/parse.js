@@ -187,13 +187,15 @@ AST.ObjectExpression = 'ObjectExpression';
 AST.Property = 'Property';
 AST.Identifier = 'Identifier';
 AST.ThisExpression = 'ThisExpression';
+AST.LocalsExpression = 'LocalsExpression';
 AST.MemberExpression = 'MemberExpression';
 
 AST.prototype.constants = {
     'null': {type: AST.Literal, value: null},
     'true': {type: AST.Literal, value: true},
     'false': {type: AST.Literal, value: false},
-    'this': {type: AST.ThisExpression}
+    'this': {type: AST.ThisExpression},
+    '$locals': {type: AST.LocalsExpression}
 };
 
 AST.prototype.ast = function(text) {
@@ -218,27 +220,40 @@ AST.prototype.primary = function() {
     } else {
         primary = this.constant();
     }
-    while (this.expect('.')) {
-        primary = {
-            type: AST.MemberExpression,
-            object: primary,
-            property: this.identifier()
-        };
+    var next;
+    while ((next = this.expect('.', '['))) {
+        if (next.text === '[') {
+            primary = {
+                type: AST.MemberExpression,
+                object: primary,
+                property: this.primary(),
+                computed: true
+            };
+            this.consume(']')
+        } else {
+            primary = {
+                type: AST.MemberExpression,
+                object: primary,
+                property: this.identifier(),
+                computed: false
+            }
+        }
     }
     return primary;
 };
 
-AST.prototype.peek = function(e) {
+AST.prototype.peek = function(e1, e2, e3, e4) {
     if (this.tokens.length > 0) {
         var text = this.tokens[0].text;
-        if (text === e || !e) {
+        if (text === e1 || text === e2 || text === e3 || text === e4 ||
+            !(e1 || e2 || e3 || e4)) {
             return this.tokens[0];
         }
     }
 };
 
-AST.prototype.expect = function(e) {
-    var token = this.peek(e);
+AST.prototype.expect = function(e1, e2, e3, e4) {
+    var token = this.peek(e1, e2, e3, e4);
     if (token) {
         return this.tokens.shift();
     }
@@ -308,7 +323,7 @@ function ASTCompiler(astBuilder) {
 
 ASTCompiler.prototype.compile = function(text) {
     var ast = this.astBuilder.ast(text);
-    this.state = {body: [], nextID: 0, vars: []};
+    this.state = {body: [], nextId: 0, vars: []};
     this.recurse(ast);
     /* jshint -W054 */
     console.log(this.state.body.join(''));
@@ -353,17 +368,29 @@ ASTCompiler.prototype.recurse = function(ast) {
         // That is, b is simply an identifier, it cannot be an expression
         case AST.ThisExpression:
             return 's';
+        case AST.LocalsExpression:
+            return 'l'; 
         case AST.MemberExpression:
             intoId = this.nextId(); // so as to return undefined if the property or attribute is undefined
             var left = this.recurse(ast.object);
-            this.if_(left,
-                this.assign(intoId, this.nonComputedMember(left, ast.property.name)));
+            if (ast.computed) {
+                var right = this.recurse(ast.property);
+                this.if_(left,
+                    this.assign(intoId, this.computedMember(left, right)));
+            } else {
+                this.if_(left,
+                    this.assign(intoId, this.nonComputedMember(left, ast.property.name)));
+            }
             return intoId;
     }
 };
 
 ASTCompiler.prototype.nonComputedMember = function(left, right) {
     return '(' + left + ').' + right;
+};
+
+ASTCompiler.prototype.computedMember = function(left, right) {
+    return '(' + left + ')[' + right + ']';
 };
 
 ASTCompiler.prototype.if_ = function(test, consequent) {
