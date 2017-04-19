@@ -36,7 +36,7 @@ Lexer.prototype.lex = function(text) {
             this.readNumber();
         } else if (this.is('\'"')) {
            this.readString(this.ch); 
-        } else if (this.is('[],{}:.()')) {
+        } else if (this.is('[],{}:.()=')) {
             this.tokens.push({
                 text: this.ch
             });
@@ -190,6 +190,7 @@ AST.ThisExpression = 'ThisExpression';
 AST.LocalsExpression = 'LocalsExpression';
 AST.MemberExpression = 'MemberExpression';
 AST.CallExpression = 'CallExpression';
+AST.AssignmentExpression = 'AssignmentExpression';
 
 AST.prototype.constants = {
     'null': {type: AST.Literal, value: null},
@@ -205,7 +206,7 @@ AST.prototype.ast = function(text) {
 };
 
 AST.prototype.program = function() {
-    return {type: AST.Program, body: this.primary()};
+    return {type: AST.Program, body: this.assignment()};
 };
 
 AST.prototype.primary = function() {
@@ -250,6 +251,15 @@ AST.prototype.primary = function() {
     return primary;
 };
 
+AST.prototype.assignment = function() {
+    var left = this.primary();
+    if (this.expect('=')) {
+        var right = this.primary();
+        return {type: AST.AssignmentExpression, left: left, right: right}
+    }
+    return left;
+};
+
 AST.prototype.peek = function(e1, e2, e3, e4) {
     if (this.tokens.length > 0) {
         var text = this.tokens[0].text;
@@ -282,7 +292,7 @@ AST.prototype.arrayDeclaration = function() {
             if (this.peek(']')) {
                 break;
             }
-            elements.push(this.primary());
+            elements.push(this.assignment());
         } while (this.expect(','));
     }
     this.consume(']');
@@ -300,7 +310,7 @@ AST.prototype.object = function() {
                 property.key = this.constant();
             }
             this.consume(':');
-            property.value = this.primary();
+            property.value = this.assignment();
             properties.push(property);
         } while (this.expect(','));
     }
@@ -320,7 +330,7 @@ AST.prototype.parseArguments = function() {
     var args = [];
     if (!this.peek(')')) {
         do {
-            args.push(this.primary());
+            args.push(this.assignment());
         } while (this.expect(','));
     }
     return args;
@@ -428,6 +438,16 @@ ASTCompiler.prototype.recurse = function(ast, context) {
                 }
             }
             return callee + '&&' + callee + '(' + args.join(',') + ')';
+        case AST.AssignmentExpression:
+            var leftContext = {};
+            this.recurse(ast.left, leftContext);
+            var leftExpr;
+            if (leftContext.computed) {
+                leftExpr = this.computedMember(leftContext.context, leftContext.name);
+            } else {
+                leftExpr = this.nonComputedMember(leftContext.context, leftContext.name);
+            }
+            return this.assign(leftExpr, this.recurse(ast.right));
     }
 };
 
