@@ -381,9 +381,12 @@ ASTCompiler.prototype.recurse = function(ast, context) {
                      this.assign(intoId, this.nonComputedMember('l', ast.name)));
             this.if_(this.not(this.getHasOwnProperty('l', ast.name)) + '&& s',
                      this.assign(intoId, this.nonComputedMember('s', ast.name)));
+            if (context) {
+                context.context = this.getHasOwnProperty('l', ast.name) + '?l:s';
+                context.name = ast.name;
+                context.computed = false;
+            }
             return intoId;
-        // A non-computed lookup is of the a.b type, as opposed to the computed a[b] type
-        // That is, b is simply an identifier, it cannot be an expression
         case AST.ThisExpression:
             return 's';
         case AST.LocalsExpression:
