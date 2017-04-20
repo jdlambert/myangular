@@ -77,7 +77,7 @@ describe('parse', function() {
     });
 
     it('will not parse a string with invalid unicode escapes', function() {
-        expect(function() { parse('"\\u00T0"')}).toThrow();
+        expect(function() { parse('"\\u00T0"'); }).toThrow();
     });
 
     it('will parse null', function() {
@@ -346,28 +346,28 @@ describe('parse', function() {
     it('does not allow calling the function constructor', function() {
         expect(function() {
             var fn = parse('aFunction.constructor("return window;")()');
-            fn({aFunction: function(){ }})
+            fn({aFunction: function(){ }});
         }).toThrow();
     });
 
     it('does not allow calling __proto__', function() {
         expect(function() {
             var fn = parse('obj.__proto__');
-            fn({obj: { }})
+            fn({obj: { }});
         }).toThrow();
     });
 
     it('does not allow calling __defineGetter__', function() {
         expect(function() {
             var fn = parse('obj.__defineGetter__("evil", fn)');
-            fn({obj: { }, fn: function() { }})
+            fn({obj: { }, fn: function() { }});
         }).toThrow();
     });
 
     it('does not allow calling __defineSetter__', function() {
         expect(function() {
             var fn = parse('obj.__defineSetter__("evil", fn)');
-            fn({obj: { }, fn: function() { }})
+            fn({obj: { }, fn: function() { }});
         }).toThrow();
     });
 
@@ -456,5 +456,16 @@ describe('parse', function() {
         var fn = parse('fun.apply(obj)');
         expect(function() { fn({fun: function() { }, obj: {}}); }).toThrow();
     });
+
+    // OPERATORS
+
+    it('parses a unary +', function() {
+        expect(parse('+42')()).toBe(42);
+        expect(parse('+a')({a: 42})).toBe(42);
+    });
+
+    it('replaces undefined with zero for unary +', function() {
+        expect(parse('+a')({})).toBe(0);
+    })
 
 });
