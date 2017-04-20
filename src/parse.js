@@ -58,7 +58,8 @@ function ifDefined(value, defaultValue) {
 
 var OPERATORS = { // ALLOWS CONSTANT-TIME LOOKUP OF OPERATOR EXISTENCE
     '+': true,
-    '!': true
+    '!': true,
+    '-': true
 };
 
 // THE LEXER BREAKS A STRING INTO TOKENS
@@ -145,9 +146,11 @@ Lexer.prototype.readNumber = function() {
 Lexer.prototype.readString = function(quote) {
     this.index++;
     var string = '';
+    var rawString = quote;
     var escape = false;
     while (this.index < this.text.length) {
         var ch = this.text.charAt(this.index);
+        rawString += ch;
         if (escape) {
             if (ch === 'u') {
                 var hex = this.text.substring(this.index + 1, this.index + 5);
@@ -168,7 +171,7 @@ Lexer.prototype.readString = function(quote) {
         } else if (ch === quote) {
             this.index++;
             this.tokens.push({
-                text: string,
+                text: rawString,
                 value: string
             });
             return;
@@ -381,7 +384,7 @@ AST.prototype.identifier = function() {
 
 AST.prototype.unary = function() {
     var token;
-    if ((token = this.expect('+', '!'))) {
+    if ((token = this.expect('+', '!', '-'))) {
         return {
             type: AST.UnaryExpression,
             operator: token.text,

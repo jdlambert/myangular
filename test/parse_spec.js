@@ -474,6 +474,17 @@ describe('parse', function() {
         expect(parse('!42')()).toBe(false);
         expect(parse('!a')({a: false})).toBe(true);
         expect(parse('!!a')({a: false})).toBe(false);
+    });
+
+    it('parses a unary -', function() {
+        expect(parse('-42')()).toBe(-42);
+        expect(parse('-a')({a: 42})).toBe(-42);
+        expect(parse('--a')({a: -42})).toBe(-42);
+        expect(parse('-a')({})).toBe(0);
+    });
+
+    it('parses a ! in a string', function() {
+        expect(parse('"!"')()).toBe('!');
     })
 
 });
