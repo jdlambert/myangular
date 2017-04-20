@@ -56,8 +56,9 @@ function ifDefined(value, defaultValue) {
     return typeof value === 'undefined' ? defaultValue : value;
 }
 
-var OPERATORS = {
-    '+': true
+var OPERATORS = { // ALLOWS CONSTANT-TIME LOOKUP OF OPERATOR EXISTENCE
+    '+': true,
+    '!': true
 };
 
 // THE LEXER BREAKS A STRING INTO TOKENS
@@ -379,11 +380,12 @@ AST.prototype.identifier = function() {
 };
 
 AST.prototype.unary = function() {
-    if (this.expect('+')) {
+    var token;
+    if ((token = this.expect('+', '!'))) {
         return {
             type: AST.UnaryExpression,
-            operator: '+',
-            argument: this.primary()
+            operator: token.text,
+            argument: this.unary()
         };
     } else {
         return this.primary();

@@ -464,8 +464,16 @@ describe('parse', function() {
         expect(parse('+a')({a: 42})).toBe(42);
     });
 
+    // JAVASCRIPT REPLACES undefined WITH NaN, ANGULAR REPLACES WITH 0
     it('replaces undefined with zero for unary +', function() {
         expect(parse('+a')({})).toBe(0);
+    });
+
+    it('parses a unary !', function() {
+        expect(parse('!true')()).toBe(false);
+        expect(parse('!42')()).toBe(false);
+        expect(parse('!a')({a: false})).toBe(true);
+        expect(parse('!!a')({a: false})).toBe(false);
     })
 
 });
