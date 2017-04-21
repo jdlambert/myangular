@@ -718,7 +718,6 @@ ASTCompiler.prototype.recurse = function(ast, context, create) {
             this.if_(this.not(testId),
                 this.assign(intoId, this.recurse(ast.alternate)));
             return intoId;
-
     }
 };
 
