@@ -7,7 +7,9 @@ function filterFilter() {
         var predicateFn;
         if(_.isFunction(filterExpr)) {
             predicateFn = filterExpr;
-        } else if (_.isString(filterExpr)) {
+        } else if (_.isString(filterExpr) ||
+                   _.isNumber(filterExpr) ||
+                   _.isBoolean(filterExpr)) {
             predicateFn = createPredicateFn(filterExpr);
         } else {
             return array;
@@ -18,16 +20,16 @@ function filterFilter() {
 
 function createPredicateFn(expression) {
     
-    function comparator(item) {
-        var actual = item.toLowerCase();
-        var expected = expression.toLowerCase();
+    function comparator(actual, expected) {
+        actual = ('' + actual).toLowerCase();
+        expected = ('' + expected).toLowerCase();
         return actual.indexOf(expected) !== -1;
     }
 
     function deepCompare(actual, expected, comparator) {
         if (_.isObject(actual)) {
             return _.some(actual, function(value) {
-                return comparator(value, expected);
+                return deepCompare(value, expected, comparator);
             });
         } else {
             return comparator(actual, expected);
