@@ -17,11 +17,26 @@ function filterFilter() {
 }
 
 function createPredicateFn(expression) {
-    return function predicateFn(item) {
+    
+    function comparator(item) {
         var actual = item.toLowerCase();
         var expected = expression.toLowerCase();
         return actual.indexOf(expected) !== -1;
     }
+
+    function deepCompare(actual, expected, comparator) {
+        if (_.isObject(actual)) {
+            return _.some(actual, function(value) {
+                return comparator(value, expected);
+            });
+        } else {
+            return comparator(actual, expected);
+        }
+    }
+
+    return function predicateFn(item) {
+        return deepCompare(item, expression, comparator);
+    };
 }
 
 module.exports = filterFilter;
