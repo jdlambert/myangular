@@ -527,11 +527,11 @@ AST.prototype.ternary = function() {
                 test: test,
                 consequent: consequent,
                 alternate: alternate
-            }
+            };
         }
     }
     return test;
-}
+};
 
 AST.prototype.filter = function() {
     var left = this.assignment();
@@ -837,7 +837,7 @@ ASTCompiler.prototype.filterPrefix = function() {
         }, this));
         return 'var ' + parts.join(',') + ';';
     }
-}
+};
 
 
 

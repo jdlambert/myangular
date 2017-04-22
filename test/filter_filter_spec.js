@@ -260,6 +260,6 @@ describe('filter filter', function() {
         ]})).toEqual([
             {name: 'Jo'}
         ]);
-    })
+    });
 
 });
