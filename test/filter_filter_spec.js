@@ -92,6 +92,11 @@ describe('filter filter', function() {
     it('does not match null value with the string null', function() {
         var fn = parse('arr | filter:"null"');
         expect(fn({arr: [null, 'not null']})).toEqual(['not null']);
-    })
+    });
+
+    it('does not match undefined values', function() {
+        var fn = parse('arr | filter:"undefined"');
+        expect(fn({arr: [undefined, 'undefined']})).toEqual(['undefined']);
+    });
 
 });

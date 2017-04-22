@@ -22,6 +22,9 @@ function filterFilter() {
 function createPredicateFn(expression) {
     
     function comparator(actual, expected) {
+        if (_.isUndefined(actual)) {
+            return false;
+        }
         if (_.isNull(actual) || _.isNull(expected)) {
             return actual === expected; // Don't string-coerce null
         }
