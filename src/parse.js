@@ -776,7 +776,7 @@ function isLiteral(ast) {
         ast.body.length === 1 && (
             ast.body[0].type === AST.Literal ||
             ast.body[0].type === AST.ArrayExpression ||
-            ast.body[0].type === AST.ObjectExpression)
+            ast.body[0].type === AST.ObjectExpression);
 }
 
 function isAssignable(ast) {
@@ -916,7 +916,7 @@ ASTCompiler.prototype.watchFns = function() {
         result.push('fn.inputs = [', this.state.inputs.join(','), '];');
     }
     return result.join('');
-}
+};
 
 ASTCompiler.prototype.recurse = function(ast, context, create) {
     var intoId;

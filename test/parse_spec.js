@@ -818,7 +818,7 @@ describe('parse', function() {
         expect(parse('a ? 1 : 2').constant).toBe(false);
         expect(parse('true ? a : 2').constant).toBe(false);
         expect(parse('true ? 1 : b').constant).toBe(false);
-        expect(parse('a ? b : c').constant).toBe(false)
+        expect(parse('a ? b : c').constant).toBe(false);
     });
 
     it('allows calling assign on identifier expressions', function() {
