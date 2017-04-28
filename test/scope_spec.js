@@ -509,6 +509,9 @@ describe('Scope', function() {
             }, 100);
         });
 
+
+
+
     });
 
     describe('$eval', function() {
