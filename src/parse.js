@@ -79,12 +79,13 @@ function oneTimeWatchDelegate(scope, listenerFn, valueEq, watchFn) {
 
 function oneTimeLiteralWatchDelegate(scope, listenerFn, valueEq, watchFn) {
     function isAllDefined(val) {
-        return !_.any(val, _.isUndefined);
+        return !_.some(val, _.isUndefined);
     }
     var unwatch = scope.$watch(
         function() {
             return watchFn(scope);
-        }, function(newValue, oldValue, scope) {
+        },
+        function(newValue, oldValue, scope) {
             if (_.isFunction(listenerFn)) {
                 listenerFn.apply(this, arguments);
             }
@@ -95,7 +96,8 @@ function oneTimeLiteralWatchDelegate(scope, listenerFn, valueEq, watchFn) {
                     }
                 });
             }
-        }, valueEq
+        },
+        valueEq
     );
     return unwatch;
 }

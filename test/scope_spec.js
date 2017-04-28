@@ -456,7 +456,7 @@ describe('Scope', function() {
 
             scope.$digest();
             expect(scope.$$watchers.length).toBe(1);
-
+            
             scope.aValue = 3;
             scope.$digest();
             expect(scope.$$watchers.length).toBe(0);
