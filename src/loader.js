@@ -24,7 +24,7 @@ function setupModuleLoader(window) {
         if (modules.hasOwnProperty(name)) {
             return modules[name];
         } else {
-            throw 'Module ' + name + 'is not available!';
+            throw 'Module ' + name + ' is not available!';
         }
     }
 
