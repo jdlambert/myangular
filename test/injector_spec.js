@@ -139,6 +139,16 @@ describe('injector', function() {
         expect(injector.invoke(fn, undefined, {b: 3})).toBe(4);
     });
 
+    it('throws when using a non-annotated fn in strict mode', function() {
+        var injector = createInjector([], true);
+
+        var fn = function(a, b, c) { };
+
+        expect(function() {
+            injector.annotate(fn);
+        }).toThrow();
+    });
+
 });
 
 
