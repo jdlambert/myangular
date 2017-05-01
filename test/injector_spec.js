@@ -77,6 +77,13 @@ describe('injector', function() {
         expect(injector.has('aConstant')).toBe(true);
         expect(injector.has('anotherConstant')).toBe(true);
         expect(injector.has('aThirdConstant')).toBe(true);
+    });
+
+    it('loads each module only once', function() {
+        window.angular.module('myModule', ['myOtherModule']);
+        window.angular.module('myOtherModule', ['myModule']);
+
+        createInjector(['myModule']);
     })
 
 });
