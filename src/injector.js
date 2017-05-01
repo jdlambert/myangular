@@ -4,9 +4,10 @@ var _ = require('lodash');
 
 // Used to capture the arguments in function declaration
 var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
-// Used to strip whitespace off an argument
-var FN_ARG = /^\s*(\S+)\s*$/;
-var STRIP_COMMENTS = /\/\*.*\*\//
+// Used to strip whitespace and parentheses off an argument
+var FN_ARG = /^\s*(_?)(\S+)\1\s*$/;
+// Strips both double-backslash and backslash-star comments
+var STRIP_COMMENTS = /(\/\/.*$)|(\/\*.*?\*\/)/mg;
 
 function createInjector(modulesToLoad) {
 
@@ -46,7 +47,7 @@ function createInjector(modulesToLoad) {
             var source = fn.toString().replace(STRIP_COMMENTS, '');
             var argDeclaration = source.match(FN_ARGS);
             return _.map(argDeclaration[1].split(','), function(argName) {
-                return argName.match(FN_ARG)[1];
+                return argName.match(FN_ARG)[2];
             });
         }
     }
