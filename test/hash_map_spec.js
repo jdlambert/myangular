@@ -1,4 +1,5 @@
 var hashKey = require('../src/hash_map').hashKey;
+var _ = require('lodash');
 
 describe('hash', function() {
     'use strict';
@@ -81,7 +82,20 @@ describe('hash', function() {
 
         it('uses preassigned $$hashKey', function() {
             expect(hashKey({$$hashKey: 42})).toEqual('object:42');
-        })
+        });
+
+        it('supports a function $$hashKey', function() {
+            expect(hashKey({$$hashKey: _.constant(42)})).toEqual('object:42');
+        });
+
+        it('calls the function $$hashKey as a method to correct this', function() {
+            expect(hashKey({
+                myKey: 42,
+                $$hashKey: function() {
+                    return this.myKey;
+                }
+            })).toEqual('object:42');
+        });
 
     });
 });

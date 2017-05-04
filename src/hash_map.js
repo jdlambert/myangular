@@ -8,7 +8,9 @@ function hashKey(value) {
     if (type === 'function' ||
         (type === 'object' && value !== null)) {
         uid = value.$$hashKey;
-        if (uid === undefined) {
+        if (typeof uid === 'function') {
+            uid = value.$$hashKey();
+        } else if (uid === undefined) {
             uid = value.$$hashKey = _.uniqueId();
         }
     } else {
