@@ -613,4 +613,14 @@ describe('provider', function() {
         expect(injector.get('a')).toBe(42);
     });
 
+    it('runs a config block added during module registration', function () {
+        var module = window.angular.module('myModule', [], function($provide) {
+            $provide.constant('a', 42);
+        });
+
+        var injector = createInjector(['myModule']);
+
+        expect(injector.get('a')).toBe(42);
+    });
+
 });
