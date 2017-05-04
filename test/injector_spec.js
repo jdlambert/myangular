@@ -562,4 +562,18 @@ describe('provider', function() {
         expect(injector.get('a')).toBe(3);
     });
 
+    it('does not allow injecting the $provide service to $get', function() {
+        var module = window.angular.module('myModule', []);
+
+        module.provider('a', function AProvider($provide) {
+            this.$get = function(provide) { };
+        });
+
+        var injector = createInjector(['myModule']);
+
+        expect(function() {
+            injector.get('a');
+        }).toThrow();
+    });
+
 });
