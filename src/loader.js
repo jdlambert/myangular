@@ -31,7 +31,12 @@ function setupModuleLoader(window) {
             provider: invokeLater('$provide', 'provider'),
             config: invokeLater('$injector', 'invoke', 'push', configBlocks),
             _invokeQueue: invokeQueue,
-            _configBlocks: configBlocks
+            _configBlocks: configBlocks,
+            _runBlocks: [],
+            run: function(fn) {
+                moduleInstance._runBlocks.push(fn);
+                return moduleInstance;
+            }
         };
 
         if (configFn) {
