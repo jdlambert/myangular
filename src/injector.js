@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
+var HashMap = require('./hash_map').HashMap;
 
 // Used to capture the arguments in function declaration
 var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
@@ -26,7 +27,7 @@ function createInjector(modulesToLoad, strictDi) {
     });
 
 
-    var loadedModules = {};
+    var loadedModules = new HashMap();
     var path = [];
     strictDi = (strictDi === true);
 
@@ -138,17 +139,17 @@ function createInjector(modulesToLoad, strictDi) {
 
     var runBlocks = [];
     _.forEach(modulesToLoad, function loadModule(module) {
-        if (_.isString(module)) {
-            if (!loadedModules.hasOwnProperty(module)) {
-                loadedModules[module] = true;
-                var module = window.angular.module(module);
+        if (!loadedModules.get(module)) {
+            loadedModules.put(module, true);
+            if (_.isString(module)) {
+                module = window.angular.module(module);
                 _.forEach(module.requires, loadModule);
                 runInvokeQueue(module._invokeQueue);
                 runInvokeQueue(module._configBlocks);
                 runBlocks = runBlocks.concat(module._runBlocks);
-            }
-        } else if (_.isFunction(module) || _.isArray(module)) {
+            } else if (_.isFunction(module) || _.isArray(module)) {
             runBlocks.push(providerInjector.invoke(module));
+            }
         }
     });
     _.forEach(_.compact(runBlocks), function(runBlock) {
