@@ -168,7 +168,7 @@ describe('injector', function() {
         module.constant('b', 2);
         var injector = createInjector(['myModule']);
 
-        var fn = function(a, b) { return a + b; }
+        var fn = function(a, b) { return a + b; };
 
         expect(injector.invoke(fn)).toBe(3);
     });
@@ -318,7 +318,7 @@ describe('instantiate', function () {
 
         var instance = injector.instantiate(Type, {b: 3});
         expect(instance.result).toBe(4);
-    })
+    });
 
 });
 
@@ -480,7 +480,7 @@ describe('provider', function() {
         var module = window.angular.module('myModule', []);
 
         module.provider('a', function AProvider() {
-            this.$get = function() { return 1; }
+            this.$get = function() { return 1; };
         });
 
         var injector = createInjector(['myModule']);

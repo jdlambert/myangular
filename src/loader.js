@@ -3,7 +3,7 @@
 function setupModuleLoader(window) {
 
     var ensure = function(obj, name, factory) {
-        return obj[name] || (obj[name] = factory())
+        return obj[name] || (obj[name] = factory());
     };
 
     var angular = ensure(window, 'angular', Object);
@@ -53,7 +53,7 @@ function setupModuleLoader(window) {
         } else {
             throw 'Module ' + name + ' is not available!';
         }
-    }
+    };
 
     ensure(angular, 'module', function() {
         var modules = {};

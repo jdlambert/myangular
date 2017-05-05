@@ -158,6 +158,6 @@ function createInjector(modulesToLoad, strictDi) {
 
     return instanceInjector;
 
-};
+}
 
 module.exports = createInjector;
