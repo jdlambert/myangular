@@ -19,4 +19,17 @@ function hashKey(value) {
     return type + ':' + uid;
 }
 
-module.exports = {hashKey: hashKey};
+function HashMap() {
+
+}
+
+HashMap.prototype = {
+    put: function(key, value) {
+        this[hashKey(key)] = value;
+    },
+    get: function(key) {
+        return this[hashKey(key)];
+    }
+};
+
+module.exports = {hashKey: hashKey, HashMap: HashMap};
