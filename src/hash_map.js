@@ -29,6 +29,12 @@ HashMap.prototype = {
     },
     get: function(key) {
         return this[hashKey(key)];
+    },
+    remove: function(key) {
+        key = hashKey(key);
+        var value = this[key];
+        delete this[key];
+        return value;
     }
 };
 
