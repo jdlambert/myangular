@@ -4,6 +4,15 @@ var _ = require('lodash');
 
 function $RootScopeProvider() {
 
+    var TTL = 10;
+
+    this.digestTtl = function(value) {
+        if (_.isNumber(value)) {
+            TTL = value;
+        }
+        return TTL;
+    };
+
     this.$get = ['$parse', function($parse) {
 
         function initWatchVal() { }
@@ -218,7 +227,7 @@ function $RootScopeProvider() {
         };
 
         Scope.prototype.$digest = function() {
-            var timeToLive = 10;
+            var ttl = TTL;
             var dirty;
             this.$root.$$lastDirtyWatch = null;
             this.$beginPhase('$digest');
@@ -238,8 +247,8 @@ function $RootScopeProvider() {
                     }
                 }
                 dirty = this.$$digestOnce();
-                if ((dirty || this.$$asyncQueue.length) && !(timeToLive--)) {
-                    throw 'Digest cycle exceeded time-to-live';
+                if ((dirty || this.$$asyncQueue.length) && !(ttl--)) {
+                    throw TTL + ' digest iterations exceeded';
                 }
             } while (dirty || this.$$asyncQueue.length);
             this.$clearPhase();
