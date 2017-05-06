@@ -28,6 +28,12 @@ describe('angularPublic', function() {
         publishExternalAPI();
         var injector = createInjector(['ng']);
         expect(injector.has('$parse')).toBe(true);
-    })
+    });
+
+    it('sets up the $rootScope', function() {
+        publishExternalAPI();
+        var injector = createInjector(['ng']);
+        expect(injector.has('$rootScope')).toBe(true);
+    });
 
 });
