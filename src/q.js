@@ -18,6 +18,10 @@ function $QProvider() {
             }
         };
 
+        Promise.prototype.catch = function(onRejected) {
+            return this.then(null, onRejected);
+        };
+
         function Deferred() {
             this.promise = new Promise();
         }
@@ -52,7 +56,9 @@ function $QProvider() {
             state.pending = undefined;
             _.forEach(pending, function(handlers) {
                 var fn = handlers[state.status];
-                fn(state.value);
+                if (_.isFunction(fn)) {
+                    fn(state.value);
+                }
             })
         }
 
