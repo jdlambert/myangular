@@ -12,7 +12,7 @@ describe('parse', function() {
     beforeEach(function() {
         publishExternalAPI();
         parse = createInjector(['ng']).get('$parse');
-    })
+    });
 
     it('can parse an integer', function() {
         var fn = parse('42');

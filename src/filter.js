@@ -13,7 +13,7 @@ function $FilterProvider($provide) {
         } else {
             return $provide.factory(name + 'Filter', factory);
         }
-    }
+    };
 
     this.$get = ['$injector', function($injector) {
         return function filter(name) {
@@ -27,4 +27,4 @@ function $FilterProvider($provide) {
 $FilterProvider.$inject = ['$provide'];
 
 
-module.exports = $FilterProvider
+module.exports = $FilterProvider;

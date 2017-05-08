@@ -2251,7 +2251,7 @@ describe('Scope', function() {
                         scope.counterB++;
                     }
                 }
-            )
+            );
             scope.$watch(
                 function(scope) { return scope.counterB; },
                 function(newValue, oldValue, scope) {

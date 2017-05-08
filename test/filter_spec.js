@@ -34,7 +34,7 @@ describe('filter', function() {
                     return myOtherFilter;
                 }
             });
-        }])
+        }]);
 
         var $filter = injector.get('$filter');
         expect($filter('my')).toBe(myFilter);
@@ -75,6 +75,6 @@ describe('filter', function() {
 
         expect(injector.has('myFilter')).toBe(true);
         expect(injector.get('myFilter')).toBe(myFilter);
-    })
+    });
 
 });
