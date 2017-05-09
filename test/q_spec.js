@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+
 var publishExternalAPI = require('../src/angular_public');
 var createInjector = require('../src/injector');
 
@@ -277,4 +279,72 @@ describe('$q', function() {
 
         expect(fulfilledSpy).toHaveBeenCalledWith(20);
     });
+
+    it('catches rejection on a chained handler', function() {
+        var d = $q.defer();
+
+        var rejectedSpy = jasmine.createSpy();
+        d.promise.then(_.noop).catch(rejectedSpy);
+
+        d.reject('fail');
+        $rootScope.$apply();
+
+        expect(rejectedSpy).toHaveBeenCalledWith('fail');
+    });
+
+    it('fulfills on a chained handler', function() {
+        var d = $q.defer();
+
+        var fulfilledSpy = jasmine.createSpy();
+        d.promise.catch(_.noop).then(fulfilledSpy);
+
+        d.resolve(42);
+        $rootScope.$apply();
+
+        expect(fulfilledSpy).toHaveBeenCalledWith(42);
+    });
+
+    it('treats catch return value as a resolution', function() {
+        var d = $q.defer();
+        var fulfilledSpy = jasmine.createSpy();
+        d.promise
+            .catch(function() {
+                return 42;
+            })
+            .then(fulfilledSpy);
+
+        d.reject('fail');
+        $rootScope.$apply();
+
+        expect(fulfilledSpy).toHaveBeenCalledWith(42);
+    });
+
+    it('rejects chained promise when handler throws', function() {
+        var d = $q.defer();
+
+        var rejectedSpy = jasmine.createSpy();
+        d.promise.then(function() {
+            throw 'fail';
+        }).catch(rejectedSpy);
+        d.resolve(42);
+
+        $rootScope.$apply();
+
+        expect(rejectedSpy).toHaveBeenCalledWith('fail');
+    });
+
+    it('does not reject current promise when handler throws', function() {
+        var d = $q.defer();
+
+        var rejectedSpy = jasmine.createSpy();
+        d.promise.then(function() {
+            throw 'fail';
+        });
+        d.promise.catch(rejectedSpy);
+        d.resolve(42);
+
+        $rootScope.$apply();
+
+        expect(rejectedSpy).not.toHaveBeenCalled();
+    })
 });
