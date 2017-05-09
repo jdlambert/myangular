@@ -25,10 +25,14 @@ function $QProvider() {
         };
 
         Promise.prototype.finally = function(callback) {
-            return this.then(function() {
+            return this.then(function(value) {
                 callback();
-            }, function() {
+                return value;
+            }, function(rejection) {
                 callback();
+                var d = new Deferred();
+                d.reject(rejection);
+                return d.promise;
             });
         };
 

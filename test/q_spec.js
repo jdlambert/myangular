@@ -394,5 +394,36 @@ describe('$q', function() {
         $rootScope.$apply();
 
         expect(rejectedSpy).toHaveBeenCalledWith('fail');
+    });
+
+    it('allows chaining handlers on finally, with original value', function() {
+        var d = $q.defer();
+
+        var fulfilledSpy = jasmine.createSpy();
+        d.promise.then(function(result) {
+            return result + 1;
+        }).finally(function(result) {
+            return result * 2;
+        }).then(fulfilledSpy);
+        d.resolve(20);
+
+        $rootScope.$apply();
+
+        expect(fulfilledSpy).toHaveBeenCalledWith(21);
+    });
+
+    it('allows chaining handlers on finally, with original rejection', function() {
+        var d = $q.defer();
+
+        var rejectedSpy = jasmine.createSpy();
+        d.promise.then(function(result) {
+            throw 'fail';
+        }).finally(function(result) {
+        }).catch(rejectedSpy);
+        d.resolve(20);
+
+        $rootScope.$apply();
+
+        expect(rejectedSpy).toHaveBeenCalledWith('fail');
     })
 });
