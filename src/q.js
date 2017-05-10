@@ -26,13 +26,27 @@ function $QProvider() {
 
         Promise.prototype.finally = function(callback) {
             return this.then(function(value) {
-                callback();
-                return value;
+                var callBackValue = callback();
+                if (callBackValue && callBackValue.then) {
+                    return callBackValue.then(function() {
+                        return value;
+                    });
+                } else {
+                    return value;
+                }
             }, function(rejection) {
-                callback();
-                var d = new Deferred();
-                d.reject(rejection);
-                return d.promise;
+                var callBackValue = callback();
+                if (callBackValue && callBackValue.then) {
+                    return callBackValue.then(function() {
+                        var d = new Deferred();
+                        d.reject(rejection);
+                        return d.promise;
+                    });
+                } else {
+                    var d = new Deferred();
+                    d.reject(rejection);
+                    return d.promise
+                }
             });
         };
 
