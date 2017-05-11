@@ -133,8 +133,23 @@ function $QProvider() {
             return new Deferred();
         }
 
+        function reject(rejection) {
+            var d = defer();
+            d.reject(rejection);
+            return d.promise;
+        }
+
+        function when(value, callback, errback, progressback) {
+            var d = defer();
+            d.resolve(value);
+            return d.promise.then(callback, errback, progressback);
+        }
+
         return {
-            defer: defer
+            defer: defer,
+            reject: reject,
+            when: when,
+            resolve: when
         };
 
     }];
