@@ -24,12 +24,12 @@ function $QProvider() {
             return this.then(null, onRejected);
         };
 
-        Promise.prototype.finally = function(callback) {
+        Promise.prototype.finally = function(callback, progressBack) {
             return this.then(function(value) {
                 return handleFinallyCallback(callback, value, true);
             }, function(rejection) {
                 return handleFinallyCallback(callback, rejection, false);
-            });
+            }, progressBack);
         };
 
         function handleFinallyCallback(callback, value, resolved) {
@@ -65,7 +65,8 @@ function $QProvider() {
             if (value && _.isFunction(value.then)) {
                 value.then(
                     _.bind(this.resolve, this),
-                    _.bind(this.reject, this)
+                    _.bind(this.reject, this),
+                    _.bind(this.notify, this)
                 );
             } else {
                 this.promise.$$state.value = value;
@@ -85,12 +86,17 @@ function $QProvider() {
 
         Deferred.prototype.notify = function(progress) {
             var pending = this.promise.$$state.pending;
-            if (pending && pending.length) {
+            if (pending && pending.length && !this.promise.$$state.status) {
                 $rootScope.$evalAsync(function() {
                     _.forEach(pending, function(handlers) {
+                        var deferred = handlers[0];
                         var progressBack = handlers[3];
-                        if (_.isFunction(progressBack)) {
-                            progressBack(progress);
+                        try {
+                            deferred.notify(_.isFunction(progressBack) ?
+                                                progressBack(progress) :
+                                                progress)
+                        } catch (e) {
+                            console.log(e);
                         }
                     });
                 });
