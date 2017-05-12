@@ -90,4 +90,23 @@ describe('$http', function() {
         expect(response.config.url).toEqual('http://teropa.info');
     });
 
+    it('rejects promises when XHR results in errors/aborts', function() {
+        var requestConfig = {
+            method: 'GET',
+            url: 'http://teropa.info'
+        };
+
+        var response;
+        $http(requestConfig).catch(function(r) {
+            response = r;
+        });
+
+        requests[0].onerror();
+
+        expect(response).toBeDefined();
+        expect(response.status).toBe(0);
+        expect(response.data).toBe(null);
+        expect(response.config.url).toEqual('http://teropa.info');
+    });
+
 });
