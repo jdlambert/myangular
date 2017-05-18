@@ -196,5 +196,51 @@ describe('$http', function() {
         );
         expect(requests[0].requestHeaders['Content-Type']).toBeUndefined();
     });
+
+    it('does not send content-type header when no data', function() {
+        $http({
+            method: 'POST',
+            url: 'http://teropa.info',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            }
+        });
+        expect(requests.length).toBe(1);
+        expect(requests[0].requestHeaders['Content-Type']).not.toBe(
+            'application/json;charset=utf-8'
+        );
+    });
+
+    it('supports functions as header values', function() {
+        var contentTypeSpy = jasmine.createSpy().and.returnValue(
+            'text/plain;charset=utf-8');
+        $http.defaults.headers.post['Content-Type'] = contentTypeSpy;
+
+        var request = {
+            method: 'POST',
+            url: 'http://teropa.info',
+            data: 42
+        };
+        $http(request);
+
+        expect(contentTypeSpy).toHaveBeenCalledWith(request);
+        expect(requests[0].requestHeaders['Content-Type']).toBe(
+            'text/plain;charset=utf-8');
+    });
+
+    it('ignores header function value when null/undefined', function() {
+        var cacheControlSpy = jasmine.createSpy().and.returnValue(null);
+        $http.defaults.headers.post['Cache-Control'] = cacheControlSpy;
+
+        var request = {
+            method: 'POST',
+            url: 'http://teropa.info',
+            data: 42
+        };
+        $http(request);
+
+        expect(cacheControlSpy).toHaveBeenCalledWith(request);
+        expect(requests[0].requestHeaders['Cache-Control']).toBeUndefined();
+    });
         
 });
