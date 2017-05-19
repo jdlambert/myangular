@@ -48,6 +48,6 @@ describe('angularPublic', function() {
         var injector = createInjector(['ng']);
         expect(injector.has('$http')).toBe(true);
         expect(injector.has('$httpBackend')).toBe(true);
-    })
+    });
 
 });

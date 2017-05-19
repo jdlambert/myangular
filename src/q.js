@@ -35,7 +35,7 @@ function qFactory(callLater) {
         if (callBackValue && callBackValue.then) {
             return callBackValue.then(function() {
                 return makePromise(value, resolved);
-            })
+            });
         } else {
             return makePromise(value, resolved);
         }
@@ -92,7 +92,7 @@ function qFactory(callLater) {
                     try {
                         deferred.notify(_.isFunction(progressBack) ?
                                             progressBack(progress) :
-                                            progress)
+                                            progress);
                     } catch (e) {
                         console.log(e);
                     }
@@ -104,7 +104,7 @@ function qFactory(callLater) {
     function scheduleProcessQueue(state) {
         callLater(function() {
             processQueue(state);
-        })
+        });
     }
 
     function processQueue(state) {

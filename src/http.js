@@ -30,7 +30,7 @@ function $HttpProvider() {
             {},
             defaults.headers.common,
             defaults.headers[(config.method || 'get').toLowerCase()]
-        )
+        );
         _.forEach(defHeaders, function(value, key) {
             var headerExists = _.some(reqHeaders, function(v, k) {
                 return k.toLowerCase() === key.toLowerCase();
@@ -53,7 +53,7 @@ function $HttpProvider() {
                 }
             }
         }, headers);
-    };
+    }
 
     this.$get = ['$httpBackend', '$q', '$rootScope', function($httpBackend, $q, $rootScope) {
 
@@ -98,7 +98,7 @@ function $HttpProvider() {
                 config.headers
             );
             return deferred.promise;
-        };
+        }
 
         $http.defaults = defaults;
 
