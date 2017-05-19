@@ -79,6 +79,20 @@ function $HttpProvider() {
         }, {});
     }
 
+    function isSuccess(status) {
+        return status >= 200 && status < 300;
+    }
+
+    function transformData(data, transform) {
+        if (_.isFunction(transform)) {
+            return transform(data);
+        } else {
+            return _.reduce(transform, function(data, fn) {
+                return fn(data);
+            }, data);
+        }
+    }
+
     this.$get = ['$httpBackend', '$q', '$rootScope', function($httpBackend, $q, $rootScope) {
 
         function $http(requestConfig) {
@@ -94,16 +108,14 @@ function $HttpProvider() {
                 config.withCredentials = defaults.withCredentials;
             }
 
-            if (_.isUndefined(config.data)) {
+            var reqData = transformData(config.data, config.transformRequest);
+
+            if (_.isUndefined(reqData)) {
                 _.forEach(config.headers, function(v, k) {
                     if (k.toLowerCase() === 'content-type') {
                         delete config.headers[k];
                     }
                 });
-            }
-
-            function isSuccess(status) {
-                return status >= 200 && status < 300;
             }
 
             function done(status, response, headersString, statusText) {
@@ -123,7 +135,7 @@ function $HttpProvider() {
             $httpBackend(
                 config.method,
                 config.url,
-                config.data,
+                reqData,
                 done,
                 config.headers,
                 config.withCredentials
