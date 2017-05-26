@@ -68,27 +68,33 @@ function $HttpProvider() {
     }
 
     function parseHeaders(headers) {
-        var lines = headers.split('\n');
-        return _.transform(lines, function(result, line) {
-            var seperatorAt = line.indexOf(':');
-            var name = _.trim(line.substr(0, seperatorAt)).toLowerCase();
-            var value = _.trim(line.substr(seperatorAt + 1));
-            if (name) {
-                result[name] = value;
-            }
-        }, {});
+        if (_.isObject(headers)) {
+            return _.transform(headers, function(result, v, k) {
+                result[_.trim(k.toLowerCase())] = _.trim(v);
+            }, {});
+        } else {
+            var lines = headers.split('\n');
+            return _.transform(lines, function(result, line) {
+                var seperatorAt = line.indexOf(':');
+                var name = _.trim(line.substr(0, seperatorAt)).toLowerCase();
+                var value = _.trim(line.substr(seperatorAt + 1));
+                if (name) {
+                    result[name] = value;
+                }
+            }, {});
+        }
     }
 
     function isSuccess(status) {
         return status >= 200 && status < 300;
     }
 
-    function transformData(data, transform) {
+    function transformData(data, headers, transform) {
         if (_.isFunction(transform)) {
-            return transform(data);
+            return transform(data, headers);
         } else {
             return _.reduce(transform, function(data, fn) {
-                return fn(data);
+                return fn(data, headers);
             }, data);
         }
     }
@@ -99,7 +105,8 @@ function $HttpProvider() {
             var deferred = $q.defer();
 
             var config = _.extend({
-                method: 'GET'
+                method: 'GET',
+                transformRequest: defaults.transformRequest
             }, requestConfig);
             config.headers = mergeHeaders(requestConfig);
 
@@ -108,7 +115,11 @@ function $HttpProvider() {
                 config.withCredentials = defaults.withCredentials;
             }
 
-            var reqData = transformData(config.data, config.transformRequest);
+            var reqData = transformData(
+                config.data,
+                headersGetter(config.headers),
+                config.transformRequest
+            );
 
             if (_.isUndefined(reqData)) {
                 _.forEach(config.headers, function(v, k) {
