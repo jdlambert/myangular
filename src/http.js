@@ -27,7 +27,8 @@ function $HttpProvider() {
                 return data;
             }
         }],
-        transformResponse: [defaultHttpResponseTransform]
+        transformResponse: [defaultHttpResponseTransform],
+        paramSerializer: serializeParams
     };
 
     function isBlob(object) {
@@ -139,6 +140,35 @@ function $HttpProvider() {
         }
     }
 
+    function serializeParams(params) {
+        var parts = [];
+        _.forEach(params, function(value, key) {
+            if (_.isNull(value) || _.isUndefined(value)) {
+                return;
+            }
+            if(!_.isArray(value)) {
+                value = [value];
+            }
+            _.forEach(value, function(v) {
+                if (_.isObject(v)) {
+                    v = JSON.stringify(v);
+                }
+                parts.push(
+                    encodeURIComponent(key) + '=' + encodeURIComponent(v)                    
+                );
+            });
+        });
+        return parts.join('&');
+    }
+
+    function buildUrl(url, serializedParams) {
+        if (serializedParams.length) {
+            url += (url.indexOf('?') === -1) ? '?' : '&';
+            url += serializedParams;
+        }
+        return url;
+    }
+
     this.$get = ['$httpBackend', '$q', '$rootScope', function($httpBackend, $q, $rootScope) {
 
         function sendReq(config, reqData) {
@@ -158,9 +188,11 @@ function $HttpProvider() {
                 }
             }
 
+            var url = buildUrl(config.url, config.paramSerializer(config.params));
+
             $httpBackend(
                 config.method,
-                config.url,
+                url,
                 reqData,
                 done,
                 config.headers,
@@ -174,7 +206,8 @@ function $HttpProvider() {
             var config = _.extend({
                 method: 'GET',
                 transformRequest: defaults.transformRequest,
-                transformResponse: defaults.transformResponse
+                transformResponse: defaults.transformResponse,
+                paramSerializer: defaults.paramSerializer
             }, requestConfig);
             config.headers = mergeHeaders(requestConfig);
 
