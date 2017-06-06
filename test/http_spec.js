@@ -709,6 +709,68 @@ describe('$http', function() {
         });
     });
 
+    describe('JQ-like param serialization', function() {
+
+        it('is possible', function() {
+            $http({
+                url: 'http://teropa.info',
+                params: {
+                    a: 42,
+                    b: 43
+                },
+                paramSerializer: '$httpParamSerializerJQLike'
+            });
+
+            expect(requests[0].url).toEqual('http://teropa.info?a=42&b=43');
+        });
+
+        it('uses square brackets in arrays', function() {
+            $http({
+                url: 'http://teropa.info',
+                params: {
+                    a: [42, 43]
+                },
+                paramSerializer: '$httpParamSerializerJQLike'
+            });
+
+            expect(requests[0].url).toEqual('http://teropa.info?a%5B%5D=42&a%5B%5D=43');
+        });
+
+        it('uses square brackets in objects', function() {
+            $http({
+                url: 'http://teropa.info',
+                params: {
+                    a: {b: 42, c: 43}
+                },
+                paramSerializer: '$httpParamSerializerJQLike'
+            });
+
+            expect(requests[0].url).toEqual('http://teropa.info?a%5Bb%5D=42&a%5Bc%5D=43');
+        });
+
+        it('supports nesting in objects', function() {
+            $http({
+                url: 'http://teropa.info',
+                params: {
+                    a: {b: {c: 42}}
+                },
+                paramSerializer: '$httpParamSerializerJQLike'
+            });
+
+            expect(requests[0].url).toEqual('http://teropa.info?a%5Bb%5D%5Bc%5D=42');
+        });
+
+        it('appends array indexes when items are objects', function() {
+            $http({
+                url: 'http://teropa.info',
+                params: {
+                    a: [{b: 42}]
+                },
+                paramSerializer: '$httpParamSerializerJQLike'
+            });
+
+            expect(requests[0].url).toEqual('http://teropa.info?a%5B0%5D%5Bb%5D=42');
+        });
+    });
+
 });
-
-

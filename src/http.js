@@ -2,34 +2,6 @@
 
 var _ = require('lodash');
 
-function $HttpParamSerializerProvider() {
-
-    this.$get = function() {
-
-        return function serializeParams(params) {
-            var parts = [];
-            _.forEach(params, function(value, key) {
-                if (_.isNull(value) || _.isUndefined(value)) {
-                    return;
-                }
-                if(!_.isArray(value)) {
-                    value = [value];
-                }
-                _.forEach(value, function(v) {
-                    if (_.isObject(v)) {
-                        v = JSON.stringify(v);
-                    }
-                    parts.push(
-                        encodeURIComponent(key) + '=' + encodeURIComponent(v)                    
-                    );
-                });
-            });
-            return parts.join('&');
-        }
-
-    };
-
-}
 
 function $HttpProvider() {
 
@@ -271,7 +243,71 @@ function $HttpProvider() {
     }];
 }
 
+function $HttpParamSerializerProvider() {
+
+    this.$get = function() {
+
+        return function serializeParams(params) {
+            var parts = [];
+            _.forEach(params, function(value, key) {
+                if (_.isNull(value) || _.isUndefined(value)) {
+                    return;
+                }
+                if(!_.isArray(value)) {
+                    value = [value];
+                }
+                _.forEach(value, function(v) {
+                    if (_.isObject(v)) {
+                        v = JSON.stringify(v);
+                    }
+                    parts.push(
+                        encodeURIComponent(key) + '=' + encodeURIComponent(v)                    
+                    );
+                });
+            });
+            return parts.join('&');
+        }
+
+    };
+
+}
+
+function $HttpParamSerializerJQLikeProvider() {
+    this.$get = function() {
+        return function(params) {
+            var parts = [];
+
+            function serialize(value, prefix, topLevel) {
+                if (_.isNull(value) || _.isUndefined(value)) {
+                    return;
+                }
+                if (_.isArray(value)) {
+                    _.forEach(value, function(v, i) {
+                        serialize(v, prefix + '[' + 
+                                              (_.isObject(v) ? i : '') +
+                                              ']');
+                    });
+                } else if (_.isObject(value) && !_.isDate(value)) {
+                    _.forEach(value, function(v, k) {
+                        serialize(v, prefix + (topLevel ? '' : '[') +
+                                          k + (topLevel ? '' : ']'));
+                    });
+                } else {
+                    parts.push(
+                        encodeURIComponent(prefix) + '=' + encodeURIComponent(value)
+                    );
+                }
+            }
+
+            serialize(params, '', true);
+
+            return parts.join('&');
+        };
+    };
+}
+
 module.exports = {
     $HttpProvider: $HttpProvider,
-    $HttpParamSerializerProvider: $HttpParamSerializerProvider
+    $HttpParamSerializerProvider: $HttpParamSerializerProvider,
+    $HttpParamSerializerJQLikeProvider: $HttpParamSerializerJQLikeProvider
 }
