@@ -437,7 +437,7 @@ describe('$http', function() {
             url: 'http://teropa.info',
             transformResponse: function(data, headers, status) {
                 if (status === 401) {
-                    return 'unauthorized'
+                    return 'unauthorized';
                 } else {
                     return data;
                 }
@@ -674,6 +674,39 @@ describe('$http', function() {
 
         expect(requests[0].url)
             .toEqual('http://teropa.info?a=42lol&b=43lol');
+    });
+
+    it('allows substituting param serializer through DI', function() {
+        var injector = createInjector(['ng', function($provide) {
+            $provide.factory('mySpecialSerializer', function() {
+                return function(params) {
+                    return _.map(params, function(v, k) {
+                        return k + '=' + v + 'lol';
+                    }).join('&');
+                };
+            });
+        }]);
+        injector.invoke(function($http) {
+            $http({
+                url: 'http://teropa.info',
+                params: {
+                    a: 42,
+                    b: 43
+                },
+                paramSerializer: 'mySpecialSerializer'
+            });
+
+            expect(requests[0].url)
+                .toEqual('http://teropa.info?a=42lol&b=43lol');
+        });
+    });
+
+    it('makes default param serialzer available through DI', function() {
+        var injector = createInjector(['ng']);
+        injector.invoke(function($httpParamSerializer) {
+            var result = $httpParamSerializer({a: 42, b: 43});
+            expect(result).toEqual('a=42&b=43');
+        });
     });
 
 });

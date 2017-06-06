@@ -2,6 +2,35 @@
 
 var _ = require('lodash');
 
+function $HttpParamSerializerProvider() {
+
+    this.$get = function() {
+
+        return function serializeParams(params) {
+            var parts = [];
+            _.forEach(params, function(value, key) {
+                if (_.isNull(value) || _.isUndefined(value)) {
+                    return;
+                }
+                if(!_.isArray(value)) {
+                    value = [value];
+                }
+                _.forEach(value, function(v) {
+                    if (_.isObject(v)) {
+                        v = JSON.stringify(v);
+                    }
+                    parts.push(
+                        encodeURIComponent(key) + '=' + encodeURIComponent(v)                    
+                    );
+                });
+            });
+            return parts.join('&');
+        }
+
+    };
+
+}
+
 function $HttpProvider() {
 
     var defaults = this.defaults = {
@@ -28,7 +57,7 @@ function $HttpProvider() {
             }
         }],
         transformResponse: [defaultHttpResponseTransform],
-        paramSerializer: serializeParams
+        paramSerializer: '$httpParamSerializer'
     };
 
     function isBlob(object) {
@@ -140,27 +169,6 @@ function $HttpProvider() {
         }
     }
 
-    function serializeParams(params) {
-        var parts = [];
-        _.forEach(params, function(value, key) {
-            if (_.isNull(value) || _.isUndefined(value)) {
-                return;
-            }
-            if(!_.isArray(value)) {
-                value = [value];
-            }
-            _.forEach(value, function(v) {
-                if (_.isObject(v)) {
-                    v = JSON.stringify(v);
-                }
-                parts.push(
-                    encodeURIComponent(key) + '=' + encodeURIComponent(v)                    
-                );
-            });
-        });
-        return parts.join('&');
-    }
-
     function buildUrl(url, serializedParams) {
         if (serializedParams.length) {
             url += (url.indexOf('?') === -1) ? '?' : '&';
@@ -169,7 +177,8 @@ function $HttpProvider() {
         return url;
     }
 
-    this.$get = ['$httpBackend', '$q', '$rootScope', function($httpBackend, $q, $rootScope) {
+    this.$get = ['$httpBackend', '$q', '$rootScope', '$injector',
+                     function($httpBackend, $q, $rootScope, $injector) {
 
         function sendReq(config, reqData) {
             var deferred = $q.defer();
@@ -210,6 +219,10 @@ function $HttpProvider() {
                 paramSerializer: defaults.paramSerializer
             }, requestConfig);
             config.headers = mergeHeaders(requestConfig);
+
+            if (_.isString(config.paramSerializer)) {
+                config.paramSerializer = $injector.get(config.paramSerializer);
+            }
 
             if (_.isUndefined(config.withCredentials) &&
                 !_.isUndefined(defaults.withCredentials)) {
@@ -258,4 +271,7 @@ function $HttpProvider() {
     }];
 }
 
-module.exports = $HttpProvider;
+module.exports = {
+    $HttpProvider: $HttpProvider,
+    $HttpParamSerializerProvider: $HttpParamSerializerProvider
+}
