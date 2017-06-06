@@ -239,6 +239,25 @@ function $HttpProvider() {
 
         $http.defaults = defaults;
 
+        _.forEach(['get', 'head', 'delete'], function(method) {
+            $http[method] = function(url, config) {
+                return $http(_.extend(config || {}, {
+                    method: method.toUpperCase(),
+                    url: url
+                }));
+            };
+        });
+
+        _.forEach(['put', 'patch', 'post'], function(method) {
+            $http[method] = function(url, data, config) {
+                return $http(_.extend(config || {}, {
+                    method: method.toUpperCase(),
+                    url: url,
+                    data: data
+                }));
+            };
+        });
+
         return $http;
     }];
 }
