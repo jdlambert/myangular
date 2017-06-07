@@ -1081,7 +1081,7 @@ describe('$http', function() {
         $http.get('http://teropa.info', {
             timeout: 5000
         });
-        $rootScope.$apply()
+        $rootScope.$apply();
 
         jasmine.clock().tick(5001);
 
@@ -1144,8 +1144,8 @@ describe('$http', function() {
             jasmine.clock().tick(100);
             expect(resolvedSpy).toHaveBeenCalled();
             jasmine.clock().uninstall();
-        })
+        });
 
-    })
+    });
 
 });
