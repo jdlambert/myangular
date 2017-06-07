@@ -189,20 +189,8 @@ function $HttpProvider() {
             return deferred.promise;
         }
 
-        function $http(requestConfig) {
-
-            var config = _.extend({
-                method: 'GET',
-                transformRequest: defaults.transformRequest,
-                transformResponse: defaults.transformResponse,
-                paramSerializer: defaults.paramSerializer
-            }, requestConfig);
-            config.headers = mergeHeaders(requestConfig);
-
-            if (_.isString(config.paramSerializer)) {
-                config.paramSerializer = $injector.get(config.paramSerializer);
-            }
-
+        function serverRequest(config) {
+            
             if (_.isUndefined(config.withCredentials) &&
                 !_.isUndefined(defaults.withCredentials)) {
                 config.withCredentials = defaults.withCredentials;
@@ -242,6 +230,27 @@ function $HttpProvider() {
 
             return sendReq(config, reqData)
                 .then(transformResponse, transformResponse);
+
+        }
+
+        function $http(requestConfig) {
+
+            var config = _.extend({
+                method: 'GET',
+                transformRequest: defaults.transformRequest,
+                transformResponse: defaults.transformResponse,
+                paramSerializer: defaults.paramSerializer
+            }, requestConfig);
+
+            config.headers = mergeHeaders(requestConfig);
+
+            if (_.isString(config.paramSerializer)) {
+                config.paramSerializer = $injector.get(config.paramSerializer);
+            }
+
+            var promise = $q.when(config);
+            return promise.then(serverRequest);
+
         }
 
         $http.defaults = defaults;
