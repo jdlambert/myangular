@@ -249,6 +249,9 @@ function $HttpProvider() {
             }
 
             var promise = $q.when(config);
+            _.forEach(interceptors, function(interceptor) {
+                promise = promise.then(interceptor.request);
+            });
             return promise.then(serverRequest);
 
         }

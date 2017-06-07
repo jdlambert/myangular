@@ -918,4 +918,44 @@ describe('$http', function() {
         expect(interceptorFactorySpy).toHaveBeenCalled();
     });
 
+    it('allows intercepting requests', function() {
+        var injector = createInjector(['ng', function($httpProvider) {
+            $httpProvider.interceptors.push(function() {
+                return {
+                    request: function(config) {
+                        config.params.intercepted = true;
+                        return config;
+                    }
+                };
+            });
+        }]);
+        $http = injector.get('$http');
+        $rootScope = injector.get('$rootScope');
+
+        $http.get('http://teropa.info', {params: {}});
+        $rootScope.$apply();
+        expect(requests[0].url).toBe('http://teropa.info?intercepted=true');
+    });
+
+    it('allows returning promises from request intercepts', function() {
+        var injector = createInjector(['ng', function($httpProvider) {
+            $httpProvider.interceptors.push(function($q) {
+                return {
+                    request: function(config) {
+                        config.params.intercepted = true;
+                        return $q.when(config);
+                    }
+                };
+            });
+        }]);
+        $http = injector.get('$http');
+        $rootScope = injector.get('$rootScope');
+
+        $http.get('http://teropa.info', {params: {}});
+        $rootScope.$apply();
+        expect(requests[0].url).toBe('http://teropa.info?intercepted=true');
+    });
+
+
+
 });
