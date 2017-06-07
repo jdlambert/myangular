@@ -956,6 +956,71 @@ describe('$http', function() {
         expect(requests[0].url).toBe('http://teropa.info?intercepted=true');
     });
 
+    it('allows intercepting responses', function() {
+        var injector = createInjector(['ng', function($httpProvider) {
+            $httpProvider.interceptors.push(_.constant({
+                response: function(response) {
+                    response.intercepted = true;
+                    return response;
+                }
+            }));
+        }]);
+        $http = injector.get('$http');
+        $rootScope = injector.get('$rootScope');
 
+        var response;
+        $http.get('http://teropa.info').then(function(r) {
+            response = r;
+        });
+        $rootScope.$apply();
+
+        requests[0].respond(200, {}, 'Hello');
+        expect(response.intercepted).toBe(true);
+    });
+
+    it('allows intercepting request errors', function() {
+        var requestErrorSpy = jasmine.createSpy();
+        var injector = createInjector(['ng', function($httpProvider) {
+            $httpProvider.interceptors.push(_.constant({
+                request: function(config) {
+                    throw 'fail';
+                }
+            }));
+            $httpProvider.interceptors.push(_.constant({
+                requestError: requestErrorSpy
+            }));
+        }]);
+        $http = injector.get('$http');
+        $rootScope = injector.get('$rootScope');
+
+        $http.get('http://teropa.info');
+        $rootScope.$apply();
+
+        expect(requests.length).toBe(0);
+        expect(requestErrorSpy).toHaveBeenCalledWith('fail');
+    });
+
+    it('allows intercepting response errors', function() {
+        var responseErrorSpy = jasmine.createSpy();
+        var injector = createInjector(['ng', function($httpProvider) {
+            $httpProvider.interceptors.push(_.constant({
+                responseError: responseErrorSpy
+            }));
+            $httpProvider.interceptors.push(_.constant({
+                response: function(config) {
+                    throw 'fail';
+                }
+            }));
+        }]);
+        $http = injector.get('$http');
+        $rootScope = injector.get('$rootScope');
+
+        $http.get('http://teropa.info');
+        $rootScope.$apply();
+
+        requests[0].respond(200, {}, 'Hello');
+        $rootScope.$apply();
+        expect(responseErrorSpy).toHaveBeenCalledWith('fail');
+    });
 
 });
