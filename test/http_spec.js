@@ -7,7 +7,7 @@ var createInjector = require('../src/injector');
 
 describe('$http', function() {
 
-    var $http, $rootScope;
+    var $http, $rootScope, $q;
     var xhr, requests;
 
     beforeEach(function() {
@@ -15,6 +15,7 @@ describe('$http', function() {
         var injector = createInjector(['ng']);
         $http = injector.get('$http');
         $rootScope = injector.get('$rootScope');
+        $q = injector.get('$q');
     });
 
     beforeEach(function() {
@@ -1060,5 +1061,33 @@ describe('$http', function() {
         expect(headers('Cache-Control')).toBe('no-cache');
         expect(config.method).toBe('GET');
     });
+
+    it('allows aborting a request with a promise', function() {
+        var timeout = $q.defer();
+        $http.get('http://teropa.info', {
+            timeout: timeout.promise
+        });
+        $rootScope.$apply();
+
+        timeout.resolve();
+        $rootScope.$apply();
+
+        expect(requests[0].aborted).toBe(true);
+    });
+
+    it('allows aborting a request after a timeout', function() {
+        jasmine.clock().install();
+
+        $http.get('http://teropa.info', {
+            timeout: 5000
+        });
+        $rootScope.$apply()
+
+        jasmine.clock().tick(5001);
+
+        expect(requests[0].aborted).toBe(true);
+
+        jasmine.clock().uninstall();
+    })
 
 });
