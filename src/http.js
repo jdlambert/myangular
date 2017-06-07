@@ -5,6 +5,8 @@ var _ = require('lodash');
 
 function $HttpProvider() {
 
+    var interceptorFactories = this.interceptors = [];
+
     var defaults = this.defaults = {
         headers: {
             common: {
@@ -151,6 +153,11 @@ function $HttpProvider() {
 
     this.$get = ['$httpBackend', '$q', '$rootScope', '$injector',
                      function($httpBackend, $q, $rootScope, $injector) {
+
+        var interceptors = _.map(interceptorFactories, function(fn) {
+            return _.isString(fn) ? $injector.get(fn) :
+                                    $injector.invoke(fn)
+        });
 
         function sendReq(config, reqData) {
             var deferred = $q.defer();

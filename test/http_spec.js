@@ -827,4 +827,36 @@ describe('$http', function() {
         });
     });
 
+    it('allows attaching interceptor factories', function() {
+        var interceptorFactorySpy = jasmine.createSpy();
+        var injector = createInjector(['ng', function($httpProvider) {
+            $httpProvider.interceptors.push(interceptorFactorySpy);
+        }]);
+        $http = injector.get('$http');
+
+        expect(interceptorFactorySpy).toHaveBeenCalled();
+    });
+
+    it('uses DI to instantiate interceptors', function() {
+        var interceptorFactorySpy = jasmine.createSpy();
+        var injector = createInjector(['ng', function($httpProvider) {
+            $httpProvider.interceptors.push(['$rootScope', interceptorFactorySpy]);
+        }]);
+        $http = injector.get('$http');
+
+        var $rootScope = injector.get('$rootScope');
+        expect(interceptorFactorySpy).toHaveBeenCalledWith($rootScope);
+    });
+
+    it('allows referencing existing interceptor factories', function() {
+        var interceptorFactorySpy = jasmine.createSpy().and.returnValue({});
+        var injector = createInjector(['ng', function($provide, $httpProvider) {
+            $provide.factory('myInterceptor', interceptorFactorySpy);
+            $httpProvider.interceptors.push('myInterceptor');
+        }]);
+        $http = injector.get('$http');
+
+        expect(interceptorFactorySpy).toHaveBeenCalled();
+    });
+
 });
