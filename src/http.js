@@ -166,7 +166,7 @@ function $HttpProvider() {
 
         var interceptors = _.map(interceptorFactories, function(fn) {
             return _.isString(fn) ? $injector.get(fn) :
-                                    $injector.invoke(fn)
+                                    $injector.invoke(fn);
         });
 
         function sendReq(config, reqData) {
@@ -290,15 +290,15 @@ function $HttpProvider() {
                 promise.then(function(response) {
                     fn(response.data, response.status, response.headers, config);
                 });
-                return promise
-            }
+                return promise;
+            };
 
             promise.error = function(fn) {
                 promise.catch(function(response) {
                     fn(response.data, response.status, response.headers, config);
                 });
-                return promise
-            }
+                return promise;
+            };
 
             return promise;
         }
@@ -352,7 +352,7 @@ function $HttpParamSerializerProvider() {
                 });
             });
             return parts.join('&');
-        }
+        };
 
     };
 
@@ -396,4 +396,4 @@ module.exports = {
     $HttpProvider: $HttpProvider,
     $HttpParamSerializerProvider: $HttpParamSerializerProvider,
     $HttpParamSerializerJQLikeProvider: $HttpParamSerializerJQLikeProvider
-}
+};

@@ -44,7 +44,7 @@ function $HttpBackendProvider() {
                 });
             } else if (timeout > 0) {
                 timeoutId = setTimeout(function() {
-                    xhr.abort()
+                    xhr.abort();
                 }, timeout);
             }
         };
