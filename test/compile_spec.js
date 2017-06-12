@@ -674,7 +674,7 @@ describe('$compile', function() {
                 var el = $(domString);
                 $compile(el);
                 callback(el, givenAttrs, $rootScope);
-            })
+            });
         }
 
         it('passes the element attributes to the compile function', function() {
@@ -776,7 +776,7 @@ describe('$compile', function() {
                         compile: function(element, attrs) {
                             attrs2 = attrs;
                         }
-                    }
+                    };
                 }
             });
             injector.invoke(function($compile) {
@@ -919,6 +919,92 @@ describe('$compile', function() {
             );
         });
 
+        it('adds an attribute from a class directive', function() {
+            registerAndCompile(
+                'myDirective',
+                '<div class="my-directive"></div>',
+                function(element, attrs) {
+                    expect(attrs.hasOwnProperty('myDirective')).toBe(true);
+                }
+            );
+        });
+
+        it('does not add an attribute from a class without a directive', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive class="some-class"></my-directive>',
+                function(element, attrs) {
+                    expect(attrs.hasOwnProperty('someClass')).toBe(false);
+                }
+            );
+        });     
+        
+        it('supports values for class directive names', function() {
+            registerAndCompile(
+                'myDirective',
+                '<div class="my-directive: my attribute value"></div>',
+                function(element, attrs) {
+                    expect(attrs.myDirective).toEqual('my attribute value');
+                }
+            );
+        });
+
+        it('terminates class directive attribute value at semicolon', function() {
+            registerAndCompile(
+                'myDirective',
+                '<div class="my-directive: my attribute value; some-other-class"></div>',
+                function(element, attrs) {
+                    expect(attrs.myDirective).toEqual('my attribute value');
+                }
+            );
+        });
+
+        it('adds an attribute with a value from a comment directive', function() {
+            registerAndCompile(
+                'myDirective',
+                '<!-- directive: my-directive and the attribute value -->',
+                function(element, attrs) {
+                    expect(attrs.hasOwnProperty('myDirective')).toBe(true);
+                    expect(attrs.myDirective).toEqual('and the attribute value');
+                }
+            );
+        });
+
+        it('allows adding classes', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive></my-directive>',
+                function(element, attrs) {
+                    attrs.$addClass('some-class');
+                    expect(element.hasClass('some-class')).toBe(true);
+                }
+            );
+        });
+
+        it('allows removing classes', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive class="some-class"></my-directive>',
+                function(element, attrs) {
+                    attrs.$removeClass('some-class');
+                    expect(element.hasClass('some-class')).toBe(false);
+                }
+            );
+        });
+
+        it('allows updating classes', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive class="one three four"></my-directive>',
+                function(element, attrs) {
+                    attrs.$updateClass('one two three', 'one three four');
+                    expect(element.hasClass('one')).toBe(true);
+                    expect(element.hasClass('two')).toBe(true);
+                    expect(element.hasClass('three')).toBe(true);
+                    expect(element.hasClass('four')).toBe(false);
+                }
+            );
+        });
     });
 
 });

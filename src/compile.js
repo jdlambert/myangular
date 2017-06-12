@@ -74,7 +74,7 @@ function $CompileProvider($provide) {
     function Attributes(element) {
       this.$$element = element;
       this.$attr = {};
-    };
+    }
 
     Attributes.prototype.$set = function(key, value, writeAttr, attrName) {
       this[key] = value;
@@ -124,6 +124,27 @@ function $CompileProvider($provide) {
       };
     };
 
+    Attributes.prototype.$addClass = function(classVal) {
+      this.$$element.addClass(classVal);
+    };
+
+    Attributes.prototype.$removeClass = function(classVal) {
+      this.$$element.removeClass(classVal);
+    };
+
+    Attributes.prototype.$updateClass = function(newClassVal, oldClassVal) {
+      var newClasses = newClassVal.split(/\s+/);
+      var oldClasses = oldClassVal.split(/\s+/);
+      var addedClasses = _.difference(newClasses, oldClasses);
+      var removedClasses = _.difference(oldClasses, newClasses);
+      if (addedClasses.length) {
+        this.$addClass(addedClasses.join(' '));
+      }
+      if (removedClasses.length) {
+        this.$removeClass(removedClasses.join(' '));
+      }
+    };
+
     function compile($compileNodes) {
       return compileNodes($compileNodes);
     }
@@ -162,6 +183,7 @@ function $CompileProvider($provide) {
 
     function collectDirectives(node, attrs) {
       var directives = [];
+      var match;
       if (node.nodeType === Node.ELEMENT_NODE) {
         var normalizedNodeName = directiveNormalize(nodeName(node).toLowerCase());
         addDirective(directives, normalizedNodeName, 'E');
@@ -195,14 +217,23 @@ function $CompileProvider($provide) {
           }
           attrs.$attr[normalizedAttrName] = name;
         });
-        _.forEach(node.classList, function(cls) {
-          var normalizedClassName = directiveNormalize(cls);
-          addDirective(directives, normalizedClassName, 'C');
-        });
+        var className = node.className;
+        if (_.isString(className) && !_.isEmpty(className)) {
+         while ((match = /([\d\w\-_]+)(?:\:([^;]+))?;?/.exec(className))) {
+          var normalizedClassName = directiveNormalize(match[1]);
+          if (addDirective(directives, normalizedClassName, 'C')) {
+            attrs[normalizedClassName] = match[2] ? match[2].trim() : undefined;
+          }
+          className = className.substr(match.index + match[0].length);
+         } 
+        }
       } else if (node.nodeType === Node.COMMENT_NODE) {
-        var match = /^\s*directive\:\s*([\d\w\-_]+)/.exec(node.nodeValue);
+        match = /^\s*directive\:\s*([\d\w\-_]+)\s*(.*)$/.exec(node.nodeValue);
         if (match) {
-          addDirective(directives, directiveNormalize(match[1]), 'M');
+          var normalizedName = directiveNormalize(match[1]);
+          if (addDirective(directives, normalizedName, 'M')) {
+            attrs[normalizedName] = match[2] ? match[2].trim() : undefined;
+          }
         }
       }
       directives.sort(byPriority);
@@ -210,6 +241,7 @@ function $CompileProvider($provide) {
     }
 
     function addDirective(directives, name, mode, attrStartName, attrEndName) {
+      var match;
       if (hasDirectives.hasOwnProperty(name)) {
         var foundDirectives = $injector.get(name + 'Directive');
         var applicableDirectives = _.filter(foundDirectives, function(dir) {
@@ -223,8 +255,10 @@ function $CompileProvider($provide) {
             });
           }
           directives.push(directive);
+          match = directive;
         });
       }
+      return match;
     }
 
     function applyDirectivesToNode(directives, compileNode, attrs) {
