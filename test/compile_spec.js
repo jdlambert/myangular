@@ -670,10 +670,10 @@ describe('$compile', function() {
                     }
                 };
             });
-            injector.invoke(function($compile) {
+            injector.invoke(function($compile, $rootScope) {
                 var el = $(domString);
                 $compile(el);
-                callback(el, givenAttrs);
+                callback(el, givenAttrs, $rootScope);
             })
         }
 
@@ -784,7 +784,140 @@ describe('$compile', function() {
                 $compile(el);
                 expect(attrs1).toBe(attrs2);
             });
-        })
+        });
+
+        it('sets prop for boolean attributes', function() {
+            registerAndCompile(
+                'myDirective',
+                '<input my-directive>',
+                function(element, attrs) {
+                    attrs.$set('disabled', true);
+                    expect(element.prop('disabled')).toBe(true);
+                }
+            );
+        }); 
+
+        it('sets prop for boolean attributes even when not flushing', function() {
+            registerAndCompile(
+                'myDirective',
+                '<input my-directive>',
+                function(element, attrs) {
+                    attrs.$set('disabled', true, false);
+                    expect(element.prop('disabled')).toBe(true);
+                }
+            );
+        }); 
+
+        it('denormalizes attribute name when explicitly given', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive some-attribute="42"></my-directive>',
+                function(element, attrs) {
+                    attrs.$set('someAttribute', 43, true, 'some-attribute');
+                    expect(element.attr('some-attribute')).toEqual('43');
+                }
+            );
+        });
+
+        it('denormalizes attribute name by snake-casing', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive some-attribute="42"></my-directive>',
+                function(element, attrs) {
+                    attrs.$set('someAttribute', 43);
+                    expect(element.attr('some-attribute')).toEqual('43');
+                }
+            );
+        });
+
+        it('denormalizes attribute name by using original attribute name', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive x-some-attribute="42"></my-directive>',
+                function(element, attrs) {
+                    attrs.$set('someAttribute', 43);
+                    expect(element.attr('x-some-attribute')).toEqual('43');
+                }
+            );
+        });
+
+        it('does not use ng-attr- prefix in denormalized names', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive ng-attr-some-attribute="42"></my-directive>',
+                function(element, attrs) {
+                    attrs.$set('someAttribute', 43);
+                    expect(element.attr('some-attribute')).toEqual('43');
+                }
+            );
+        });
+
+        it('uses new attribute name once given', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive x-some-attribute="42"></my-directive>',
+                function(element, attrs) {
+                    attrs.$set('someAttribute', 43, true, 'some-attribute');
+                    attrs.$set('someAttribute', 44); 
+                    expect(element.attr('some-attribute')).toEqual('44');
+                    expect(element.attr('x-some-attribute')).toEqual('42');
+                }
+            );
+        });
+
+        it('calls observer immediately when attribute is $set', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive some-attribute="42"></my-directive>',
+                function(element, attrs) {
+                    var gotValue;
+                    attrs.$observe('someAttribute', function(value) {
+                        gotValue = value;
+                    });
+
+                    attrs.$set('someAttribute', '43');
+
+                    expect(gotValue).toEqual('43');
+                }
+            );
+        });
+
+        it('calls observer on next $digest after registration', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive some-attribute="42"></my-directive>',
+                function(element, attrs, $rootScope) {
+                    var gotValue;
+                    attrs.$observe('someAttribute', function(value) {
+                        gotValue = value;
+                    });
+
+                    $rootScope.$digest();
+
+                    expect(gotValue).toEqual('42');
+                }
+            );
+        });
+
+        it('lets observers be deregistered', function() {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive some-attribute="42"></my-directive>',
+                function(element, attrs) {
+                    var gotValue;
+                    var remove = attrs.$observe('someAttribute', function(value) {
+                        gotValue = value;
+                    });
+
+                    attrs.$set('someAttribute', '43');
+                    expect(gotValue).toEqual('43');
+
+                    remove();
+                    attrs.$set('someAttribute', '44');
+                    expect(gotValue).toEqual('43');
+                }
+            );
+        });
 
     });
 

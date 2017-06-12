@@ -37,6 +37,7 @@ var BOOLEAN_ELEMENTS = {
   DETAILS: true
 };
 
+
 function $CompileProvider($provide) {
 
   var hasDirectives = {};
@@ -68,17 +69,59 @@ function $CompileProvider($provide) {
     }
   };
 
-  this.$get = ['$injector', function($injector) {
+  this.$get = ['$injector', '$rootScope', function($injector, $rootScope) {
 
     function Attributes(element) {
       this.$$element = element;
+      this.$attr = {};
     };
 
-    Attributes.prototype.$set = function(key, value, writeAttr) {
+    Attributes.prototype.$set = function(key, value, writeAttr, attrName) {
       this[key] = value;
-      if (writeAttr !== false) {
-        this.$$element.attr(key, value);  
+      
+      if (isBooleanAttribute(this.$$element[0], key)) {
+        this.$$element.prop(key, value);
       }
+
+      if (!attrName) {
+        if (this.$attr[key]) {
+          attrName = this.$attr[key];
+        } else {
+          attrName = this.$attr[key] = _.kebabCase(key);
+        }
+      } else {
+        this.$attr[key] = attrName;
+      }
+
+      if (writeAttr !== false) {
+        this.$$element.attr(attrName, value);  
+      }
+
+      if (this.$$observers) {
+        _.forEach(this.$$observers[key], function(observer) {
+          try {
+            observer(value);
+          } catch (e) {
+            console.log(e);
+          }
+        });
+      }
+    };
+
+    Attributes.prototype.$observe = function(key, fn) {
+      var self = this;
+      this.$$observers = this.$$observers || Object.create(null);
+      this.$$observers[key] = this.$$observers[key] || [];
+      this.$$observers[key].push(fn);
+      $rootScope.$evalAsync(function() {
+        fn(self[key]);
+      });
+      return function() {
+        var index = self.$$observers[key].indexOf(fn);
+        if (index >= 0) {
+          self.$$observers[key].splice(index, 1);
+        }
+      };
     };
 
     function compile($compileNodes) {
@@ -148,7 +191,9 @@ function $CompileProvider($provide) {
             if (isBooleanAttribute(node, normalizedAttrName)) {
               attrs[normalizedAttrName] = true;
             }
+            normalizedAttrName = directiveNormalize(name.toLowerCase());
           }
+          attrs.$attr[normalizedAttrName] = name;
         });
         _.forEach(node.classList, function(cls) {
           var normalizedClassName = directiveNormalize(cls);
