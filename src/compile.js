@@ -351,8 +351,14 @@ function $CompileProvider($provide) {
 
         if (directive.scope) {
           if (_.isObject(directive.scope)) {
+            if (newIsolateScopeDirective || newScopeDirective) {
+              throw 'Multiple directives asking for new/inherited scope';
+            } 
             newIsolateScopeDirective = directive;
           } else {
+            if (newIsolateScopeDirective) {
+              throw 'Multiple directives asking for new/inherited scope';
+            }
             newScopeDirective = newScopeDirective || directive;
           }
         }
@@ -380,6 +386,8 @@ function $CompileProvider($provide) {
         var isolateScope;
         if (newIsolateScopeDirective) {
           isolateScope = scope.$new(true);
+          $element.addClass('ng-isolate-scope');
+          $element.data('$isolateScope', isolateScope);
         }
 
         _.forEach(preLinkFns, function(linkFn) {
