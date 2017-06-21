@@ -37,6 +37,17 @@ var BOOLEAN_ELEMENTS = {
   DETAILS: true
 };
 
+function parseIsolateBindings(scope) {
+  var bindings = {};
+  _.forEach(scope, function(definition, scopeName) {
+    var match = definition.match(/\s*@\s*(\w*)\s*/);
+    bindings[scopeName] = {
+      mode: '@',
+      attrName: match[1] || scopeName
+    };
+  });
+  return bindings;
+}
 
 function $CompileProvider($provide) {
 
@@ -57,6 +68,9 @@ function $CompileProvider($provide) {
             directive.priority = directive.priority || 0;
             if (directive.link && !directive.compile) {
               directive.compile = _.constant(directive.link);
+            }
+            if (_.isObject(directive.scope)) {
+              directive.$$isolateBindings = parseIsolateBindings(directive.scope);
             }
             directive.name = directive.name || name;
             directive.index = i;
@@ -388,6 +402,22 @@ function $CompileProvider($provide) {
           isolateScope = scope.$new(true);
           $element.addClass('ng-isolate-scope');
           $element.data('$isolateScope', isolateScope);
+          _.forEach(
+            newIsolateScopeDirective.$$isolateBindings,
+            function(definition, scopeName) {
+              var attrName = definition.attrName;
+              switch (definition.mode) {
+                case '@':
+                  attrs.$observe(attrName, function(newAttrValue) {
+                    isolateScope[scopeName] = newAttrValue;
+                  });
+                  if (attrs[attrName]) {
+                    isolateScope[scopeName] = attrs[attrName];
+                  }
+                  break;
+              }
+            }
+          );
         }
 
         _.forEach(preLinkFns, function(linkFn) {
