@@ -1665,6 +1665,53 @@ describe('$compile', function() {
                 expect($rootScope.$$watchers.length).toBe(0);
             });
         });
+
+        it('allows assigning on two-way expressions', function() {
+            var isolateScope;
+            var injector = makeInjectorWithDirectives('myDirective', function() {
+                return {
+                    scope: {
+                        myAttr: '=?'
+                    },
+                    link: function(scope) {
+                        isolateScope = scope;
+                    }
+                };
+            });
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-directive my-attr="parentAttr"></div>');
+                $compile(el)($rootScope);
+
+                isolateScope.myAttr = 42;
+                $rootScope.$digest();
+
+                expect($rootScope.parentAttr).toBe(42);
+            });
+        });
+
+        it('gives parent change precedence when both parent and child change', function() {
+            var isolateScope;
+            var injector = makeInjectorWithDirectives('myDirective', function() {
+                return {
+                    scope: {
+                        myAttr: '=?'
+                    },
+                    link: function(scope) {
+                        isolateScope = scope;
+                    }
+                };
+            });
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-directive my-attr="parentAttr"></div>');
+                $compile(el)($rootScope);
+
+                $rootScope.parentAttr = 42;
+                isolateScope.myAttr = 43;
+                $rootScope.$digest();
+
+                expect($rootScope.parentAttr).toBe(42);
+            });
+        });
     });
 
 });

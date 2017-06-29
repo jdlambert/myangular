@@ -434,9 +434,21 @@ function $CompileProvider($provide) {
                   }
                   parentGet = $parse(attrs[attrName]);
                   isolateScope[scopeName] = parentGet(scope);
-                  unwatch = scope.$watch(parentGet, function(newValue) {
-                    isolateScope[scopeName] = newValue;
-                  });
+                  var lastValue = isolateScope[scopeName] = parentGet(scope);
+                  var parentValueWatch = function() {
+                    var parentValue = parentGet(scope);
+                    if (isolateScope[scopeName] !== parentValue) {
+                      if (parentValue !== lastValue) {
+                        isolateScope[scopeName] = parentValue;
+                      } else {
+                        parentValue = isolateScope[scopeName];
+                        parentGet.assign(scope, parentValue);
+                      }
+                    }
+                    lastValue = parentValue;
+                    return lastValue;
+                  }
+                  unwatch = scope.$watch(parentValueWatch);
                   isolateScope.$on('$destroy', unwatch);
                   break;
               }
