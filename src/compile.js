@@ -40,11 +40,12 @@ var BOOLEAN_ELEMENTS = {
 function parseIsolateBindings(scope) {
   var bindings = {};
   _.forEach(scope, function(definition, scopeName) {
-    var match = definition.match(/\s*([@<=])(\??)\s*(\w*)\s*/);
+    var match = definition.match(/\s*([@<]|=(\*?))(\??)\s*(\w*)\s*/);
     bindings[scopeName] = {
-      mode: match[1],
-      optional: match[2],
-      attrName: match[3] || scopeName
+      mode: match[1][0],
+      collection: match[2] === '*',
+      optional: match[3],
+      attrName: match[4] || scopeName
     };
   });
   return bindings;
@@ -448,7 +449,12 @@ function $CompileProvider($provide) {
                     lastValue = parentValue;
                     return lastValue;
                   }
-                  unwatch = scope.$watch(parentValueWatch);
+                  if (definition.collection) {
+                    unwatch = scope.$watchCollection(attrs[attrName], parentValueWatch);
+                  }
+                  else {
+                    unwatch = scope.$watch(parentValueWatch);
+                  }
                   isolateScope.$on('$destroy', unwatch);
                   break;
               }

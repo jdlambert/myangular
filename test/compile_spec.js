@@ -1671,7 +1671,7 @@ describe('$compile', function() {
             var injector = makeInjectorWithDirectives('myDirective', function() {
                 return {
                     scope: {
-                        myAttr: '=?'
+                        myAttr: '='
                     },
                     link: function(scope) {
                         isolateScope = scope;
@@ -1694,7 +1694,7 @@ describe('$compile', function() {
             var injector = makeInjectorWithDirectives('myDirective', function() {
                 return {
                     scope: {
-                        myAttr: '=?'
+                        myAttr: '='
                     },
                     link: function(scope) {
                         isolateScope = scope;
@@ -1712,6 +1712,59 @@ describe('$compile', function() {
                 expect($rootScope.parentAttr).toBe(42);
             });
         });
+
+        it('throws when two-way expression returns new arrays', function() {
+            var isolateScope;
+            var injector = makeInjectorWithDirectives('myDirective', function() {
+                return {
+                    scope: {
+                        myAttr: '='
+                    },
+                    link: function(scope) {
+                        isolateScope = scope;
+                    }
+                };
+            });
+            injector.invoke(function($compile, $rootScope) {
+                $rootScope.parentFunction = function() {
+                    return [1, 2, 3];
+                };
+                var el = $('<div my-directive my-attr="parentFunction()"></div>');
+                $compile(el)($rootScope);
+
+                expect(function() {
+                    $rootScope.$digest();
+                }).toThrow();
+            });
+        });
+
+        it('can watch two-way bindings as collections', function() {
+            var isolateScope;
+            var injector = makeInjectorWithDirectives('myDirective', function() {
+                return {
+                    scope: {
+                        myAttr: '=*'
+                    },
+                    link: function(scope) {
+                        isolateScope = scope;
+                    }
+                };
+            });
+            injector.invoke(function($compile, $rootScope) {
+                $rootScope.parentFunction = function() {
+                    return [1, 2, 3];
+                };
+                var el = $('<div my-directive my-attr="parentFunction()"></div>');
+                $compile(el)($rootScope);
+
+                $rootScope.$digest();
+
+                expect(isolateScope.myAttr).toEqual([1, 2, 3]);
+            });
+        });
+
     });
+
+
 
 });
