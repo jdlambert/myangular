@@ -1763,6 +1763,77 @@ describe('$compile', function() {
             });
         });
 
+        it('allows binding an invokable expression on the parent scope', function() {
+            var isolateScope;
+            var injector = makeInjectorWithDirectives('myDirective', function() {
+                return {
+                    scope: {
+                        myExpr: '&'
+                    },
+                    link: function(scope) {
+                        isolateScope = scope;
+                    }
+                };
+            });
+            injector.invoke(function($compile, $rootScope) {
+                $rootScope.parentFunction = function() {
+                    return 42;
+                };
+                var el = $('<div my-directive my-expr="parentFunction() + 1"></div>');
+                $compile(el)($rootScope);
+
+                expect(isolateScope.myExpr()).toEqual(43);
+            });
+        });
+
+        it('allows passing arguments to parent scope expression', function() {
+            var isolateScope;
+            var injector = makeInjectorWithDirectives('myDirective', function() {
+                return {
+                    scope: {
+                        myExpr: '&'
+                    },
+                    link: function(scope) {
+                        isolateScope = scope;
+                    }
+                };
+            });
+            injector.invoke(function($compile, $rootScope) {
+                var gotArg;
+                $rootScope.parentFunction = function(arg) {
+                    gotArg = arg;;
+                };
+                var el = $('<div my-directive my-expr="parentFunction(argFromChild)"></div>');
+                $compile(el)($rootScope);
+                isolateScope.myExpr({argFromChild: 42});
+
+                expect(gotArg).toEqual(42);
+            });
+        });
+
+        it('sets missing optional parent scope expression to undefined', function() {
+            var isolateScope;
+            var injector = makeInjectorWithDirectives('myDirective', function() {
+                return {
+                    scope: {
+                        myExpr: '&?'
+                    },
+                    link: function(scope) {
+                        isolateScope = scope;
+                    }
+                };
+            });
+            injector.invoke(function($compile, $rootScope) {
+                var gotArg;
+                $rootScope.parentFunction = function(arg) {
+                    gotArg = arg;
+                };
+                var el = $('<div my-directive"></div>');
+                $compile(el)($rootScope);
+
+                expect(isolateScope.myExpr).toBeUndefined();
+            });
+        });
     });
 
 
