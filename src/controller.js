@@ -4,8 +4,8 @@ function $ControllerProvider() {
 
     this.$get = ['$injector', function($injector) {
 
-        return function(ctrl) {
-            return $injector.instantiate(ctrl);
+        return function(ctrl, locals) {
+            return $injector.instantiate(ctrl, locals);
         };
 
     }];
