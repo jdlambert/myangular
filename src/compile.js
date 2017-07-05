@@ -88,7 +88,8 @@ function $CompileProvider($provide) {
     }
   };
 
-  this.$get = ['$injector', '$rootScope', '$parse', function($injector, $rootScope, $parse) {
+  this.$get = ['$injector', '$rootScope', '$controller', '$parse',
+      function($injector, $rootScope, $controller, $parse) {
 
     function Attributes(element) {
       this.$$element = element;
@@ -338,6 +339,7 @@ function $CompileProvider($provide) {
       var terminal = false;
       var preLinkFns = [], postLinkFns = [];
       var newScopeDirective, newIsolateScopeDirective;
+      var controllerDirectives;
 
       function addLinkFns(preLinkFn, postLinkFn, attrStart, attrEnd, isolateScope) {
         if (preLinkFn) {
@@ -394,10 +396,20 @@ function $CompileProvider($provide) {
           terminal = true;
           terminalPriority = directive.priority;
         }
+        if (directive.controller) {
+          controllerDirectives = controllerDirectives || {};
+          controllerDirectives[directive.name] = directive;
+        }
       });
 
       function nodeLinkFn(childLinkFn, scope, linkNode) {
         var $element = $(linkNode);
+
+        if (controllerDirectives) {
+          _.forEach(controllerDirectives, function(directive) {
+            $controller(directive.controller);
+          });
+        }
 
         var isolateScope;
         if (newIsolateScopeDirective) {
