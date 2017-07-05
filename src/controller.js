@@ -7,7 +7,11 @@ function $ControllerProvider() {
     var controllers = {};
 
     this.register = function(name, controller) {
-        controllers[name] = controller;
+        if (_.isObject(name)) {
+            _.extend(controllers, name);
+        } else {
+            controllers[name] = controller;
+        }
     };
 
     this.$get = ['$injector', function($injector) {
