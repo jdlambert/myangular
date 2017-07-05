@@ -54,4 +54,18 @@ describe('$controller', function() {
         expect(controller.theDep).toBe(42);
     });
 
+    it('allows registering controllers at config time', function() {
+        function MyController() {
+
+        }
+        var injector = createInjector(['ng', function($controllerProvider) {
+            $controllerProvider.register('MyController', MyController);
+        }]);
+        var $controller = injector.get('$controller');
+
+        var controller = $controller('MyController');
+        expect(controller).toBeDefined();
+        expect(controller instanceof MyController).toBe(true);
+    });
+
 })
