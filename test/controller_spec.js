@@ -93,8 +93,30 @@ describe('$controller', function() {
         var $controller = injector.get('$controller');
 
         var controller = $controller('MyController');
-        
+
         expect(controller).toBeDefined();
     });
 
+    it('does not normally look controllers up from window', function() {
+        window.MyController = function MyController() { }
+        var injector = createInjector(['ng']);
+        var $controller = injector.get('$controller');
+
+        expect(function() {
+            $controller('MyController');
+        }).toThrow();
+    });
+
+    it('looks up controllers from window when so configured', function() {
+        window.MyController = function MyController() { }
+
+        var injector = createInjector(['ng', function($controllerProvider) {
+            $controllerProvider.allowGlobals();
+        }]);
+        var $controller = injector.get('$controller');
+        var controller = $controller('MyController');
+
+        expect(controller).toBeDefined();
+        expect(controller instanceof window.MyController).toBe(true);
+    });
 })
