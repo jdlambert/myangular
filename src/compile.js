@@ -407,7 +407,11 @@ function $CompileProvider($provide) {
 
         if (controllerDirectives) {
           _.forEach(controllerDirectives, function(directive) {
-            $controller(directive.controller);
+            var controllerName = directive.controller;
+            if (controllerName === '@') {
+              controllerName = attrs[directive.name];
+            }
+            $controller(controllerName);
           });
         }
 
