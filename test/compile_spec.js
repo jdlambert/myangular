@@ -1801,7 +1801,7 @@ describe('$compile', function() {
             injector.invoke(function($compile, $rootScope) {
                 var gotArg;
                 $rootScope.parentFunction = function(arg) {
-                    gotArg = arg;;
+                    gotArg = arg;
                 };
                 var el = $('<div my-directive my-expr="parentFunction(argFromChild)"></div>');
                 $compile(el)($rootScope);
@@ -2117,6 +2117,36 @@ describe('$compile', function() {
                 expect(gotMyAttr).toEqual('abc');
             });
         });
+
+        it('can be required from a sibling directive', function() {
+            function MyController() { }
+            var gotMyController;
+            var injector = createInjector(['ng',
+                function($compileProvider) {
+                    $compileProvider.directive('myDirective', function() {
+                        return {
+                            scope: {},
+                            controller: MyController
+                        };
+                    });
+                    $compileProvider.directive('myOtherDirective', function() {
+                        return {
+                            require: 'myDirective',
+                            link: function(scope, element, attrs, myController) {
+                                gotMyController = myController;
+                            }
+                        };
+                    });
+                }
+            ]);
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-directive my-other-directive="abc"></div>');
+                $compile(el)($rootScope);
+                expect(gotMyController).toBeDefined();
+                expect(gotMyController instanceof MyController).toBe(true);
+            });
+        });
+
     });
 
 
