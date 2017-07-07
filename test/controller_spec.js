@@ -172,6 +172,6 @@ describe('$controller', function() {
 
         var controller = $controller(MyController, {$scope: scope}, true, 'myCtrl');
         expect(scope.myCtrl).toBe(controller.instance);
-    })
+    });
 
 });

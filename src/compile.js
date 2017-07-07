@@ -60,6 +60,10 @@ function parseDirectiveBindings(directive) {
       bindings.isolateScope = parseIsolateBindings(directive.scope);
     }
   }
+  if (_.isObject(directive.bindToController)) {
+    bindings.bindToController = 
+      parseIsolateBindings(directive.bindToController);
+  }
   return bindings;
 }
 
@@ -517,12 +521,13 @@ function $CompileProvider($provide) {
           );
         }
 
-        if (newIsolateScopeDirective && controllers[newIsolateScopeDirective.name]) {
+        var scopeDirective = newIsolateScopeDirective || newScopeDirective;
+        if (scopeDirective && controllers[scopeDirective.name]) {
           initializeDirectiveBindings(
             scope,
             attrs,
-            controllers[newIsolateScopeDirective.name].instance,
-            newIsolateScopeDirective.$$bindings.bindToController,
+            controllers[scopeDirective.name].instance,
+            scopeDirective.$$bindings.bindToController,
             isolateScope
           );
         }
