@@ -67,8 +67,8 @@ function parseDirectiveBindings(directive) {
   return bindings;
 }
 
-function getDirectiveRequire(directive) {
-  var require = directive.require;
+function getDirectiveRequire(directive, name) {
+  var require = directive.require || (directive.controller && name);
   if (!_.isArray(require) && _.isObject(require)) {
     _.forEach(require, function(value, key) {
       if (!value.length) {
@@ -101,7 +101,7 @@ function $CompileProvider($provide) {
             }
             directive.$$bindings = parseDirectiveBindings(directive);
             directive.name = directive.name || name;
-            directive.require = getDirectiveRequire(directive);
+            directive.require = getDirectiveRequire(directive, name);
             directive.index = i;
             return directive;
           });
