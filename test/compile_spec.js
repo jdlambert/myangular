@@ -2513,6 +2513,38 @@ describe('$compile', function() {
                 expect(gotCtrl).toBe(null);
             });
         });
+
+        it('attaches required controllers on controller when using object', function() {
+            function MyController() { }
+            var instantiatedController;
+            var injector = createInjector(['ng',
+                function($compileProvider) {
+                    $compileProvider.directive('myDirective', function() {
+                        return {
+                            scope: {},
+                            controller: MyController
+                        };
+                    });
+                    $compileProvider.directive('myOtherDirective', function() {
+                        return {
+                            require: {
+                                myDirective: '^'
+                            },
+                            bindToController: true,
+                            controller: function() {
+                                instantiatedController = this;
+                            }
+                        };
+                    });
+                }
+            ]);
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-directive my-other-directive></div>');
+                $compile(el)($rootScope);
+                expect(instantiatedController.myDirective instanceof MyController).toBe(true);
+            });
+        });
+
     });
 
 
