@@ -2450,6 +2450,69 @@ describe('$compile', function() {
                 expect(gotMyController.myDirective instanceof MyController).toBe(true);
             });
         });
+
+        it('does not throw on required missing controller when optional', function() {
+            var gotCtrl;
+            var injector = createInjector(['ng',
+                function($compileProvider) {
+                    $compileProvider.directive('myDirective', function() {
+                        return {
+                            require: '?noSuchDirective',
+                            link: function(scope, element, attrs, ctrl) {
+                                gotCtrl = ctrl;
+                            }
+                        };
+                    });
+                }
+            ]);
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-directive my-other-directive></div>');
+                $compile(el)($rootScope);
+                expect(gotCtrl).toBe(null);
+            });
+        });
+
+        it('allows optional marker after parent marker', function() {
+            var gotCtrl;
+            var injector = createInjector(['ng',
+                function($compileProvider) {
+                    $compileProvider.directive('myDirective', function() {
+                        return {
+                            require: '^?noSuchDirective',
+                            link: function(scope, element, attrs, ctrl) {
+                                gotCtrl = ctrl;
+                            }
+                        };
+                    });
+                }
+            ]);
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-directive my-other-directive></div>');
+                $compile(el)($rootScope);
+                expect(gotCtrl).toBe(null);
+            });
+        });
+
+        it('allows optional marker before parent marker', function() {
+            var gotCtrl;
+            var injector = createInjector(['ng',
+                function($compileProvider) {
+                    $compileProvider.directive('myDirective', function() {
+                        return {
+                            require: '?^noSuchDirective',
+                            link: function(scope, element, attrs, ctrl) {
+                                gotCtrl = ctrl;
+                            }
+                        };
+                    });
+                }
+            ]);
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-directive my-other-directive></div>');
+                $compile(el)($rootScope);
+                expect(gotCtrl).toBe(null);
+            });
+        });
     });
 
 
