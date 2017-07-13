@@ -522,19 +522,6 @@ function $CompileProvider($provide) {
           }
         }
 
-        if (directive.compile) {
-          var linkFn = directive.compile($compileNode, attrs);
-          var isolateScope = (directive === newIsolateScopeDirective);
-          var attrStart = directive.$$start;
-          var attrEnd = directive.$$end;
-          var require = directive.require;
-          if (_.isFunction(linkFn)) {
-            addLinkFns(null, linkFn, attrStart, attrEnd, isolateScope, require);
-          } else if (linkFn) {
-            addLinkFns(linkFn.pre, linkFn.post, attrStart, attrEnd, isolateScope, require);
-          }
-        }
-
         if (directive.controller) {
           controllerDirectives = controllerDirectives || {};
           controllerDirectives[directive.name] = directive;
@@ -548,6 +535,21 @@ function $CompileProvider($provide) {
           $compileNode.html(_.isFunction(directive.template) ?
                               directive.template($compileNode, attrs) :
                               directive.template);
+        }
+
+        if (directive.templateUrl) {
+          return false;
+        } else if (directive.compile) {
+          var linkFn = directive.compile($compileNode, attrs);
+          var isolateScope = (directive === newIsolateScopeDirective);
+          var attrStart = directive.$$start;
+          var attrEnd = directive.$$end;
+          var require = directive.require;
+          if (_.isFunction(linkFn)) {
+            addLinkFns(null, linkFn, attrStart, attrEnd, isolateScope, require);
+          } else if (linkFn) {
+            addLinkFns(linkFn.pre, linkFn.post, attrStart, attrEnd, isolateScope, require);
+          }
         }
 
         if (directive.terminal) {
