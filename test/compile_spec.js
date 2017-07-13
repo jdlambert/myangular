@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var $ = require('jquery');
+var sinon = require('sinon');
 var publishExternalAPI = require('../src/angular_public');
 var createInjector = require('../src/injector');
 
@@ -2677,6 +2678,20 @@ describe('$compile', function() {
 
     describe('templateUrl', function() {
 
+        var xhr, requests;
+
+        beforeEach(function() {
+            xhr = sinon.useFakeXMLHttpRequest();
+            requests = [];
+            xhr.onCreate = function(req) {
+                requests.push(req);
+            };
+        });
+
+        afterEach(function() {
+            xhr.restore();
+        });
+
         it('defers remaining directive compilation', function() {
             var otherCompileSpy = jasmine.createSpy();
             var injector = makeInjectorWithDirectives({
@@ -2711,7 +2726,38 @@ describe('$compile', function() {
             });
         });
 
-    })
+        it('immediately empties out the element', function() {
+            var injector = makeInjectorWithDirectives({
+                myDirective: function() {
+                    return {templateUrl: '/my_directive.html'};
+                }
+            });
+            injector.invoke(function($compile) {
+                var el = $('<div my-directive>Hello</div>');
+                $compile(el);
+                expect(el.is(':empty')).toBe(true);
+            });
+        });
+
+        it('fetches the template', function() {
+            var injector = makeInjectorWithDirectives({
+                myDirective: function() {
+                    return {templateUrl: '/my_directive.html'};
+                }
+            });
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-directive></div>');
+
+                $compile(el);
+                $rootScope.$apply();
+
+                expect(requests.length).toBe(1);
+                expect(requests[0].method).toBe('GET');
+                expect(requests[0].url).toBe('/my_directive.html');
+            })
+        })
+
+    });
 
 
 });
