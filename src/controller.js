@@ -32,7 +32,7 @@ function $ControllerProvider() {
 
         return function(ctrl, locals, later, identifier) {
             if (_.isString(ctrl)) {
-                var match = ctrl.match(/^(\S+)(\s+as\s+(\w+))?/)
+                var match = ctrl.match(/^(\S+)(\s+as\s+(\w+))?/);
                 ctrl = match[1];
                 identifier = identifier || match[3];
                 if (controllers.hasOwnProperty(ctrl)) {

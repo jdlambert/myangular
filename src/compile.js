@@ -4,7 +4,7 @@ var _ = require('lodash');
 var $ = require('jquery');
 
 var PREFIX_REGEXP = /(x[\:\-_]|data[\:\-_])/i;
-var REQUIRE_PREFIX_REGEXP = /^(\^\^?)?(\?)?(\^\^?)?/
+var REQUIRE_PREFIX_REGEXP = /^(\^\^?)?(\?)?(\^\^?)?/;
 
 function nodeName(element) {
   return element.nodeName ? element.nodeName : element[0].nodeName;
@@ -165,7 +165,7 @@ function $CompileProvider($provide) {
                 }
                 lastValue = parentValue;
                 return lastValue;
-              }
+              };
               if (definition.collection) {
                 unwatch = scope.$watchCollection(attrs[attrName], parentValueWatch);
               }
@@ -268,7 +268,7 @@ function $CompileProvider($provide) {
       return function publicLinkFn(scope) {
         $compileNodes.data('$scope', scope);
         compositeLinkFn(scope, $compileNodes);
-      }
+      };
     }
 
     function compileNodes($compileNodes) {
@@ -278,7 +278,7 @@ function $CompileProvider($provide) {
         var directives = collectDirectives(node, attrs);
         var nodeLinkFn;
         if (directives.length) {
-          nodeLinkFn = applyDirectivesToNode(directives, node, attrs)
+          nodeLinkFn = applyDirectivesToNode(directives, node, attrs);
         } 
         var childLinkFn;
         if ((!nodeLinkFn || !nodeLinkFn.terminal) &&
@@ -533,13 +533,19 @@ function $CompileProvider($provide) {
             addLinkFns(linkFn.pre, linkFn.post, attrStart, attrEnd, isolateScope, require);
           }
         }
-        if (directive.terminal) {
-          terminal = true;
-          terminalPriority = directive.priority;
-        }
+
         if (directive.controller) {
           controllerDirectives = controllerDirectives || {};
           controllerDirectives[directive.name] = directive;
+        }
+
+        if (directive.template) {
+          $compileNode.html(directive.template);
+        }
+
+        if (directive.terminal) {
+          terminal = true;
+          terminalPriority = directive.priority;
         }
       });
 
@@ -625,7 +631,7 @@ function $CompileProvider($provide) {
             attrs,
             linkFn.require && getControllers(linkFn.require, $element)
           );
-        })
+        });
       }
       nodeLinkFn.terminal = terminal;
       nodeLinkFn.scope = newScopeDirective && newScopeDirective.scope;

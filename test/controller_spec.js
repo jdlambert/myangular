@@ -98,7 +98,7 @@ describe('$controller', function() {
     });
 
     it('does not normally look controllers up from window', function() {
-        window.MyController = function MyController() { }
+        window.MyController = function MyController() { };
         var injector = createInjector(['ng']);
         var $controller = injector.get('$controller');
 
@@ -108,7 +108,7 @@ describe('$controller', function() {
     });
 
     it('looks up controllers from window when so configured', function() {
-        window.MyController = function MyController() { }
+        window.MyController = function MyController() { };
 
         var injector = createInjector(['ng', function($controllerProvider) {
             $controllerProvider.allowGlobals();
