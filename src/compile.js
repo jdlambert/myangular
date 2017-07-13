@@ -545,7 +545,9 @@ function $CompileProvider($provide) {
             throw 'Multiple directives asking for template';
           }
           templateDirective = directive.template;
-          $compileNode.html(directive.template);
+          $compileNode.html(_.isFunction(directive.template) ?
+                              directive.template($compileNode, attrs) :
+                              directive.template);
         }
 
         if (directive.terminal) {
