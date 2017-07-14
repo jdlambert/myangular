@@ -438,7 +438,8 @@ function $CompileProvider($provide) {
       var preLinkFns = previousCompileContext.preLinkFns || [];
       var postLinkFns = previousCompileContext.postLinkFns || [];
       var controllers = {};
-      var newScopeDirective, newIsolateScopeDirective;
+      var newScopeDirective;
+      var newIsolateScopeDirective = previousCompileContext.newIsolateScopeDirective;
       var templateDirective = previousCompileContext.templateDirective;
       var controllerDirectives;
 
@@ -511,7 +512,7 @@ function $CompileProvider($provide) {
           return false;
         }
 
-        if (directive.scope) {
+        if (directive.scope && !directive.templateUrl) {
           if (_.isObject(directive.scope)) {
             if (newIsolateScopeDirective || newScopeDirective) {
               throw 'Multiple directives asking for new/inherited scope';
@@ -551,6 +552,7 @@ function $CompileProvider($provide) {
             attrs,
             {
               templateDirective: templateDirective,
+              newIsolateScopeDirective: newIsolateScopeDirective,
               preLinkFns: preLinkFns,
               postLinkFns: postLinkFns
             }
@@ -649,7 +651,9 @@ function $CompileProvider($provide) {
         });
         if (childLinkFn) {
           var scopeToChild = scope;
-          if (newIsolateScopeDirective && newIsolateScopeDirective.template) {
+          if (newIsolateScopeDirective &&
+                (newIsolateScopeDirective.template ||
+                 newIsolateScopeDirective.templateUrl === null)) {
             scopeToChild = isolateScope;
           }
           childLinkFn(scopeToChild, linkNode.childNodes);
