@@ -499,7 +499,7 @@ function $CompileProvider($provide) {
         }
       }
 
-      _.forEach(directives, function(directive) {
+      _.forEach(directives, function(directive, i) {
         if (directive.$$start) {
           $compileNode = groupScan(compileNode, directive.$$start, directive.$$end);
         }
@@ -538,7 +538,7 @@ function $CompileProvider($provide) {
         }
 
         if (directive.templateUrl) {
-          compileTemplateUrl(directive, $compileNode);
+          compileTemplateUrl(_.drop(directives, i), $compileNode, attrs);
           return false;
         } else if (directive.compile) {
           var linkFn = directive.compile($compileNode, attrs);
@@ -681,9 +681,20 @@ function $CompileProvider($provide) {
       };
     }
 
-    function compileTemplateUrl(directive, $compileNode) {
+    function compileTemplateUrl(directives, $compileNode, attrs) {
+      var origAsyncDirective = directives.shift();
+      var derivedSyncDirective = _.extend(
+        {},
+        origAsyncDirective,
+        {templateUrl: null}
+      );
       $compileNode.empty();
-      $http.get(directive.templateUrl);
+      $http.get(origAsyncDirective.templateUrl).success(function(template) {
+        directives.unshift(derivedSyncDirective);
+        $compileNode.html(template);
+        applyDirectivesToNode(directives, $compileNode, attrs);
+        compileNodes($compileNode[0].childNodes);
+      });
     }
 
     return compile;
