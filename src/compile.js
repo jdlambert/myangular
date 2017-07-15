@@ -298,7 +298,7 @@ function $CompileProvider($provide) {
         }
       });
 
-      function compositeLinkFn(scope, linkNodes) {
+      function compositeLinkFn(scope, linkNodes, parentBoundTranscludeFn) {
         var stableNodeList = [];
 
         _.forEach(linkFns, function(linkFn) {
@@ -324,7 +324,9 @@ function $CompileProvider($provide) {
                   transcludedScope = scope.$new(false, containingScope);
                 }
                 return linkFn.nodeLinkFn.transclude(transcludedScope);
-              };
+              }
+            } else if (parentBoundTranscludeFn) {
+                boundTranscludeFn = parentBoundTranscludeFn;
             }
 
             linkFn.nodeLinkFn(
@@ -336,7 +338,8 @@ function $CompileProvider($provide) {
           } else {
             linkFn.childLinkFn(
               scope,
-              node.childNodes
+              node.childNodes,
+              parentBoundTranscludeFn
             );
           }
         });
@@ -690,7 +693,7 @@ function $CompileProvider($provide) {
                  newIsolateScopeDirective.templateUrl === null)) {
             scopeToChild = isolateScope;
           }
-          childLinkFn(scopeToChild, linkNode.childNodes);
+          childLinkFn(scopeToChild, linkNode.childNodes, boundTranscludeFn);
         }
         _.forEachRight(postLinkFns, function(linkFn) {
           linkFn(
