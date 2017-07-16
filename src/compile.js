@@ -265,9 +265,14 @@ function $CompileProvider($provide) {
     function compile($compileNodes) {
       var compositeLinkFn = compileNodes($compileNodes);
 
-      return function publicLinkFn(scope) {
+      return function publicLinkFn(scope, options) {
+        options = options || {};
+        var parentBoundTranscludeFn = options.parentBoundTranscludeFn;
+        if (parentBoundTranscludeFn && parentBoundTranscludeFn.$$boundTransclude) {
+          parentBoundTranscludeFn = parentBoundTranscludeFn.$$boundTransclude;
+        }
         $compileNodes.data('$scope', scope);
-        compositeLinkFn(scope, $compileNodes);
+        compositeLinkFn(scope, $compileNodes, parentBoundTranscludeFn);
         return $compileNodes;
       };
     }
@@ -676,6 +681,7 @@ function $CompileProvider($provide) {
         function scopeBoundTranscludeFn(transcludedScope) {
           return boundTranscludeFn(transcludedScope, scope);
         }
+        scopeBoundTranscludeFn.$$boundTransclude = boundTranscludeFn;
 
         _.forEach(preLinkFns, function(linkFn) {
           linkFn(
