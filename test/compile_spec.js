@@ -3451,6 +3451,27 @@ describe('$compile', function() {
                 expect(watchSpy.calls.count()).toBe(3);
             });
         });
+
+        it('makes contents available to controller', function() {
+            var injector = makeInjectorWithDirectives({
+                myTranscluder: function() {
+                    return {
+                        transclude: true,
+                        template: '<div in-template></div>',
+                        controller: function($element, $transclude) {
+                            $element.find('[in-template]').append($transclude());
+                        }
+                    };
+                }
+            });
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-transcluder><div in-transcluder></div></div>');
+
+                $compile(el)($rootScope);
+
+                expect(el.find('> [in-template] > [in-transcluder]').length).toBe(1);
+            });
+        });
     });
 
 
