@@ -2608,7 +2608,7 @@ describe('$compile', function() {
             injector.invoke(function($compile) {
                 var el = $('<div my-directive></div>');
                 $compile(el);
-                expect(compileSpy).toHaveBeenCalled()
+                expect(compileSpy).toHaveBeenCalled();
             });
         });
 
@@ -2629,7 +2629,7 @@ describe('$compile', function() {
                 var el = $('<div my-directive my-other-directive></div>');
                 expect(function() {
                     $compile(el);
-                }).toThrow()
+                }).toThrow();
             });
         });
 
@@ -2664,7 +2664,7 @@ describe('$compile', function() {
                 myOtherDirective: function() {
                     return {
                         link: linkSpy
-                    }
+                    };
                 }
             });
             injector.invoke(function($compile, $rootScope) {
@@ -3175,7 +3175,7 @@ describe('$compile', function() {
                             priority: 0,
                             transclude: true,
                             compile: otherCompileSpy
-                        }
+                        };
                     }
                 });
                 injector.invoke(function($compile, $rootScope) {
@@ -3220,7 +3220,7 @@ describe('$compile', function() {
                     };
                 },
                 insideTranscluder: function() {
-                    return {compile: insideCompileSpy }
+                    return { compile: insideCompileSpy };
                 }
             });
             injector.invoke(function($compile) {
@@ -3887,7 +3887,7 @@ describe('clone attach function', function() {
                 $compile(el)($rootScope);
 
                 expect(el.find('[my-double]').length).toBe(2);
-            })
+            });
         });
 
         it('sets directive attributes element to comment', function() {

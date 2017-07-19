@@ -343,7 +343,7 @@ function $CompileProvider($provide) {
                 return linkFn.nodeLinkFn.transclude(transcludedScope, cloneAttachFn, {
                   transcludeControllers: transcludeControllers
                 });
-              }
+              };
             } else if (parentBoundTranscludeFn) {
                 boundTranscludeFn = parentBoundTranscludeFn;
             }
@@ -482,7 +482,7 @@ function $CompileProvider($provide) {
       var newIsolateScopeDirective = previousCompileContext.newIsolateScopeDirective;
       var templateDirective = previousCompileContext.templateDirective;
       var controllerDirectives = previousCompileContext.controllerDirectives;
-      var childTranscludeFn, hasTranscludeDirective;
+      var childTranscludeFn;
       var hasTranscludeDirective = previousCompileContext.hasTranscludeDirective;
       var hasElementTranscludeDirective;
 
@@ -828,7 +828,7 @@ function $CompileProvider($provide) {
           afterTemplateNodeLinkFn(
             afterTemplateChildLinkFn, scope, linkNode, boundTranscludeFn);
         }
-      }
+      };
     }
 
     return compile;
