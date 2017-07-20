@@ -95,4 +95,13 @@ describe('$interpolate', function() {
         var interp = $interpolate('{{anObject}}');
         expect(interp({anObject: {a: 1, b: '2'}})).toEqual('{"a":1,"b":"2"}');
     });
+
+    it('unescapes escaped sequences', function() {
+        var injector = createInjector(['ng']);
+        var $interpolate = injector.get('$interpolate');
+
+        var interp = $interpolate('\\{\\{expr\\}\\} {{expr}} \\{\\{expr\\}\\}');
+        expect(interp({expr: 'value'})).toEqual('{{expr}} value {{expr}}');
+    });
+
 });
