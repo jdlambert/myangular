@@ -121,6 +121,15 @@ function $CompileProvider($provide) {
   this.$get = ['$injector', '$rootScope', '$controller', '$parse', '$http', '$interpolate',
       function($injector, $rootScope, $controller, $parse, $http, $interpolate) {
 
+    var startSymbol = $interpolate.startSymbol();
+    var endSymbol = $interpolate.endSymbol();
+    var denormalizeTemplate = (startSymbol === '{{' && endSymbol === '}}') ?
+          _.identity :
+          function(template) {
+            return template.replace(/\{\{/g, startSymbol)
+                           .replace(/\}\}/g, endSymbol);
+          };
+
     function initializeDirectiveBindings(
       scope, attrs, destination, bindings, newScope) {
       _.forEach(bindings, function(definition, scopeName) {
@@ -658,10 +667,12 @@ function $CompileProvider($provide) {
           if (templateDirective) {
             throw 'Multiple directives asking for template';
           }
-          templateDirective = directive.template;
-          $compileNode.html(_.isFunction(directive.template) ?
-                              directive.template($compileNode, attrs) :
-                              directive.template);
+          templateDirective = directive;
+          var template = _.isFunction(directive.template) ?
+                            directive.template($compileNode, attrs) :
+                            directive.template;
+          template = denormalizeTemplate(template);
+          $compileNode.html(template);
         }
 
         if (directive.templateUrl) {
@@ -863,6 +874,7 @@ function $CompileProvider($provide) {
       var linkQueue = [];
       $compileNode.empty();
       $http.get(templateUrl).success(function(template) {
+        template = denormalizeTemplate(template);
         directives.unshift(derivedSyncDirective);
         $compileNode.html(template);
         afterTemplateNodeLinkFn = applyDirectivesToNode(
