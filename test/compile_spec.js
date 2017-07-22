@@ -4181,6 +4181,45 @@ describe('clone attach function', function() {
             expect(injector.has('myComponentDirective')).toBe(true);
         });
 
+        function makeInjectorWithComponent(name, options) {
+            return createInjector(['ng', function($compileProvider) {
+                $compileProvider.component(name, options);
+            }]);
+        }
+
+        it('is an element directive with a controller', function() {
+            var controllerInstantiated = false;
+            var componentElement;
+            var injector = makeInjectorWithComponent('myComponent', {
+                controller: function($element) {
+                    controllerInstantiated = true;
+                    componentElement = $element;
+                }
+            });
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<my-component></my-component>');
+                $compile(el)($rootScope);
+                expect(controllerInstantiated).toBe(true);
+                expect(el[0]).toBe(componentElement[0]);
+            });
+        });
+
+        it('cannot be applied to an attribute', function() {
+            var controllerInstantiated = false;
+            var injector = makeInjectorWithComponent('myComponent', {
+                restrict: 'A', // Will be ignored
+                controller: function($element) {
+                    controllerInstantiated = true;
+                    componentElement = $element;
+                }
+            });
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-component></div>');
+                $compile(el)($rootScope);
+                expect(controllerInstantiated).toBe(false);
+            });
+        });
+
     });
 
 });

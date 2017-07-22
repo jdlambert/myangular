@@ -122,7 +122,8 @@ function $CompileProvider($provide) {
 
     function factory() {
       return {
-
+        restrict: 'E',
+        controller: options.controller
       };
     }
 
