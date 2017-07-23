@@ -4405,6 +4405,18 @@ describe('clone attach function', function() {
                 expect(requests[0].url).toEqual('/template42.html');
             });
         });
+
+        it('may use transclusion', function() {
+            var injector = makeInjectorWithComponent('myComponent', {
+                transclude: true,
+                template: '<div ng-transclude></div>'
+            });
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<my-component>Transclude me</my-component>');
+                $compile(el)($rootScope);
+                expect(el.find('div').text()).toEqual('Transclude me');
+            });
+        });
     });
 
 });
