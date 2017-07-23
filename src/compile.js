@@ -96,6 +96,18 @@ function makeInjectable(template, $injector) {
   }
 }
 
+function SimpleChange(previous, current) {
+  this.previousValue = previous;
+  this.currentValue = current;
+}
+
+SimpleChange.prototype.isFirstChange = function() {
+  return this.previousValue === _UNINITIALIZED_VALUE;
+};
+
+function UNINITIALIZED_VALUE() { }
+var _UNINITIALIZED_VALUE = new UNINITIALIZED_VALUE();
+
 function $CompileProvider($provide) {
 
   var hasDirectives = {};
@@ -168,6 +180,7 @@ function $CompileProvider($provide) {
 
     function initializeDirectiveBindings(
       scope, attrs, destination, bindings, newScope) {
+      var initialChanges = {};
       _.forEach(bindings, function(definition, scopeName) {
           var attrName = definition.attrName;
           var parentGet, unwatch;
@@ -179,6 +192,8 @@ function $CompileProvider($provide) {
               if (attrs[attrName]) {
                 destination[scopeName] = $interpolate(attrs[attrName])(scope);
               }
+              initialChanges[scopeName] =
+                new SimpleChange(_UNINITIALIZED_VALUE, destination[scopeName]);
               break;
             case '<':
               if (definition.optional && !attrs[attrName]) {
@@ -190,6 +205,8 @@ function $CompileProvider($provide) {
                 destination[scopeName] = newValue;
               });
               newScope.$on('$destroy', unwatch);
+              initialChanges[scopeName] =
+                new SimpleChange(_UNINITIALIZED_VALUE, destination[scopeName]);
               break;
             case '=':
               if (definition.optional && !attrs[attrName]) {
@@ -231,6 +248,7 @@ function $CompileProvider($provide) {
           }
         }
       );
+      return initialChanges;
     }
 
     function Attributes(element) {
@@ -791,7 +809,7 @@ function $CompileProvider($provide) {
 
         var scopeDirective = newIsolateScopeDirective || newScopeDirective;
         if (scopeDirective && controllers[scopeDirective.name]) {
-          initializeDirectiveBindings(
+          controllers[scopeDirective.name].initialChanges = initializeDirectiveBindings(
             scope,
             attrs,
             controllers[scopeDirective.name].instance,
@@ -818,6 +836,9 @@ function $CompileProvider($provide) {
           var controllerInstance = controller.instance;
           if (controllerInstance.$onInit) {
             controllerInstance.$onInit();
+          }
+          if (controllerInstance.$onChanges) {
+            controllerInstance.$onChanges(controller.initialChanges);
           }
           if (controllerInstance.$onDestroy) {
             (newIsolateScopeDirective ? isolateScope : scope).$on('$destroy', function() {
@@ -866,6 +887,13 @@ function $CompileProvider($provide) {
             linkFn.require && getControllers(linkFn.require, $element),
             scopeBoundTranscludeFn
           );
+        });
+
+        _.forEach(controllers, function(controller) {
+          var controllerInstance = controller.instance;
+          if (controllerInstance.$postLink) {
+            controllerInstance.$postLink();
+          }
         });
       }
       nodeLinkFn.terminal = terminal;
