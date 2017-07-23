@@ -112,6 +112,17 @@ function $CompileProvider($provide) {
 
   var hasDirectives = {};
 
+  var TTL = 10;
+
+  this.onChangesTtl = function(value) {
+    if (arguments.length) {
+      TTL = value;
+      return this;
+    }
+    return TTL;
+  };
+
+
   this.directive = function(name, directiveFactory) {
     if (_.isString(name)) {
       if (name === 'hasOwnProperty') {
@@ -178,16 +189,68 @@ function $CompileProvider($provide) {
                            .replace(/\}\}/g, endSymbol);
           };
 
+    var onChangesQueue;
+    var onChangesTtl = TTL;
+
+    function flushOnChanges() {
+      try {
+        onChangesTtl--;
+        if (!onChangesTtl) {
+          onChangesQueue = null;
+          throw TTL + ' $onChanges() iterations reached. Aborting!';
+        }
+        $rootScope.$apply(function() {
+          _.forEach(onChangesQueue, function(onChangesHook) {
+            onChangesHook();
+          });
+          onChangesQueue = null;
+        });
+      } finally {
+        onChangesTtl++;
+      }
+    }
+
     function initializeDirectiveBindings(
       scope, attrs, destination, bindings, newScope) {
+      
       var initialChanges = {};
+      var changes;
+
+      function recordChanges(key, currentValue, previousValue) {
+        if (destination.$onChanges && currentValue !== previousValue) {
+          if (!onChangesQueue) {
+            onChangesQueue = [];
+            $rootScope.$$postDigest(flushOnChanges);
+          }
+          if (!changes) {
+            changes = {};
+            onChangesQueue.push(triggerOnChanges);
+          }
+          if (changes[key]) {
+            previousValue = changes[key].previousValue;
+          }
+          changes[key] = new SimpleChange(previousValue, currentValue);
+        }
+      }
+
+      function triggerOnChanges() {
+        try {
+          destination.$onChanges(changes);
+        } finally {
+          changes = null;
+        }
+      }
+
+
       _.forEach(bindings, function(definition, scopeName) {
           var attrName = definition.attrName;
           var parentGet, unwatch;
           switch (definition.mode) {
             case '@':
               attrs.$observe(attrName, function(newAttrValue) {
+                var oldValue = destination[scopeName];    
                 destination[scopeName] = newAttrValue;
+                recordChanges(scopeName, destination[scopeName], oldValue);
               });
               if (attrs[attrName]) {
                 destination[scopeName] = $interpolate(attrs[attrName])(scope);
@@ -202,7 +265,9 @@ function $CompileProvider($provide) {
               parentGet = $parse(attrs[attrName]);
               destination[scopeName] = parentGet(scope);
               unwatch = scope.$watch(parentGet, function(newValue) {
+                var oldValue = destination[scopeName];    
                 destination[scopeName] = newValue;
+                recordChanges(scopeName, destination[scopeName], oldValue);
               });
               newScope.$on('$destroy', unwatch);
               initialChanges[scopeName] =
