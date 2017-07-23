@@ -4417,6 +4417,86 @@ describe('clone attach function', function() {
                 expect(el.find('div').text()).toEqual('Transclude me');
             });
         });
+
+        it('may require other directive controllers', function() {
+            var secondControllerInstance;
+            var injector = createInjector(['ng', function($compileProvider) {
+                $compileProvider.component('first', {
+                    controller: function() {}
+                });
+                $compileProvider.component('second', {
+                    require: {first: '^'},
+                    controller: function() {
+                        secondControllerInstance = this;
+                    }
+                });
+            }]);
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<first><second></second></first>');
+                $compile(el)($rootScope);
+                expect(secondControllerInstance.first).toBeDefined();
+            });
+        });
+
+        describe('lifecycle', function() {
+
+            it('calls $onInit after all ctrls created before linking', function() {
+                var invocations = [];
+                var injector = createInjector(['ng', function($compileProvider) {
+                    $compileProvider.component('first', {
+                        controller: function() {
+                            invocations.push('first controller created');
+                            this.$onInit = function() {
+                                invocations.push('first controller $onInit');
+                            };
+                        }
+                    });
+                    $compileProvider.directive('second', function() {
+                        return {
+                            controller: function() {
+                                invocations.push('second controller created');
+                                this.$onInit = function() {
+                                    invocations.push('second controller $onInit');
+                                };
+                            },
+                            link: {
+                                pre: function() { invocations.push('second prelink'); },
+                                post: function() { invocations.push('second postlink'); },
+                            }
+                        }
+                    })
+                }]);
+                injector.invoke(function($compile, $rootScope) {
+                    var el = $('<first second></first>');
+                    $compile(el)($rootScope);
+                    expect(invocations).toEqual([
+                        'first controller created',
+                        'second controller created',
+                        'first controller $onInit',
+                        'second controller $onInit',
+                        'second prelink',
+                        'second postlink'
+                    ]);
+                });
+            });
+
+            it('calls $onDestroy when the scope is destroyed', function() {
+                var destroySpy = jasmine.createSpy();
+                var injector = makeInjectorWithComponent('myComponent', {
+                    controller: function() {
+                        this.$onDestroy = destroySpy;
+                    }
+                });
+                injector.invoke(function($compile, $rootScope) {
+                    var el = $('<my-component></my-component>');
+                    $compile(el)($rootScope);
+                    $rootScope.$destroy();
+                    expect(destroySpy).toHaveBeenCalled();
+                });
+            })
+
+        });
+
     });
 
 });

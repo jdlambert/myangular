@@ -145,7 +145,8 @@ function $CompileProvider($provide) {
         bindToController: options.bindings || {},
         template: makeInjectable(options.template, $injector),
         templateUrl: makeInjectable(options.templateUrl, $injector),
-        transclude: options.transclude
+        transclude: options.transclude,
+        require: options.require
       };
     }
     factory.$inject = ['$injector'];
@@ -810,6 +811,18 @@ function $CompileProvider($provide) {
             var controller = controllers[controllerDirective.name].instance;
             var requiredControllers = getControllers(require, $element);
             _.assign(controller, requiredControllers);
+          }
+        });
+
+        _.forEach(controllers, function(controller) {
+          var controllerInstance = controller.instance;
+          if (controllerInstance.$onInit) {
+            controllerInstance.$onInit();
+          }
+          if (controllerInstance.$onDestroy) {
+            (newIsolateScopeDirective ? isolateScope : scope).$on('$destroy', function() {
+              controllerInstance.$onDestroy();
+            });
           }
         });
 
