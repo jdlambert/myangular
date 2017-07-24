@@ -25,6 +25,28 @@ describe('ngClick', function() {
 
         button.click();
         expect(watchSpy).toHaveBeenCalled();
-    })
+    });
 
+    it('evaluates given expression on click', function() {
+        $rootScope.doSomething = jasmine.createSpy();
+
+        var button = $('<button ng-click="doSomething()"></button>');
+        $compile(button)($rootScope);
+
+        button.click();
+        expect($rootScope.doSomething).toHaveBeenCalled();
+    });
+
+    it('passes $event to expression', function() {
+        $rootScope.doSomething = jasmine.createSpy();
+
+        var button = $('<button ng-click="doSomething($event)"></button>');
+        $compile(button)($rootScope);
+
+        button.click();
+        var evt = $rootScope.doSomething.calls.mostRecent().args[0];
+        expect(evt).toBeDefined();
+        expect(evt.type).toBe('click');
+        expect(evt.target).toBeDefined();
+    });
 });
